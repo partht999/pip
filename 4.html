@@ -1,1 +1,53 @@
+<html>
+<head>
+    <title>Python Code Display</title>
+</head>
+<body>
 
+<pre><code>
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix, classification_report
+
+# Load dataset
+titanic = sns.load_dataset("titanic")
+
+# Example: Predict survival using Age and Fare (Q9)
+features = ["age", "fare"]
+titanic_clean = titanic[features + ["survived"]].dropna()
+X = titanic_clean[features]
+y = titanic_clean["survived"]
+
+# Fit logistic regression
+model = LogisticRegression()
+model.fit(X, y)
+
+# Predictions
+titanic_clean["Predicted_Prob"] = model.predict_proba(X)[:,1]
+titanic_clean["Predicted_Label"] = model.predict(X)
+
+# Histogram of predicted probabilities
+plt.hist(titanic_clean["Predicted_Prob"], bins=10, color='skyblue', edgecolor='black')
+plt.xlabel("Predicted Probability")
+plt.ylabel("Frequency")
+plt.title("Probability Distribution of Survival")
+plt.show()
+
+# Evaluation
+print("Accuracy:", model.score(X, y))
+cm = confusion_matrix(y, titanic_clean["Predicted_Label"])
+sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
+plt.title("Confusion Matrix")
+plt.show()
+print("\nClassification Report:\n", classification_report(y, titanic_clean["Predicted_Label"]))
+
+
+
+
+
+</code></pre>
+parthhh
+</body>
+</html>
