@@ -1,0 +1,53 @@
+<html>
+<head>
+    <title>Python Code Display</title>
+</head>
+<body>
+
+<pre><code>
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.model_selection import train_test_split
+
+# Example: Replace X, logits, and y generation as per problem
+np.random.seed(42)
+X = np.random.uniform(0, 10, 200)          # Feature
+logits = -4 + 0.8 * X                       # Linear equation
+prob = 1 / (1 + np.exp(-logits))            # Sigmoid
+y = np.random.binomial(1, prob)             # Binary outcome
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X.reshape(-1,1), y, test_size=0.2, random_state=42)
+
+# Logistic Regression model
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# Predictions
+y_pred_prob = model.predict_proba(X_test)[:,1]
+y_pred = model.predict(X_test)
+
+# Visualization: scatter + sigmoid line
+plt.scatter(X, y, label="Data")
+plt.plot(np.sort(X), model.predict_proba(np.sort(X).reshape(-1,1))[:,1], color='red', label="Predicted Prob")
+plt.xlabel("Feature")
+plt.ylabel("Probability / Outcome")
+plt.title("Univariate Logistic Regression")
+plt.legend()
+plt.show()
+
+# Evaluation
+print("Accuracy:", accuracy_score(y_test, y_pred))
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
+plt.title("Confusion Matrix")
+plt.show()
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+</code></pre>
+
+</body>
+</html>
