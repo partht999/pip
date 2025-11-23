@@ -1,1 +1,72 @@
 
+<html>
+<head>
+    <title>Python Code Display</title>
+</head>
+<body>
+
+<pre><code>
+#include <stdio.h>
+
+// Simple restoring division for positive numbers only
+int restoringDivision(int dividend, int divisor, int *remainder) {
+    int quotient = 0;
+    *remainder = 0;
+    
+    // Process 16 bits
+    for (int i = 15; i >= 0; i--) {
+        // Left shift remainder and quotient
+        *remainder = (*remainder << 1);
+        quotient = quotient << 1;
+        
+        // Get next bit from dividend
+        int nextBit = (dividend >> i) & 1;
+        *remainder = (*remainder & ~1) | nextBit;
+        
+        // Subtract divisor
+        *remainder = *remainder - divisor;
+        
+        if (*remainder >= 0) {
+            quotient = quotient | 1;  // Set quotient bit to 1
+        } else {
+            *remainder = *remainder + divisor;  // Restore
+        }
+    }
+    
+    return quotient;
+}
+
+int main() {
+    int dividend, divisor, quotient, remainder;
+    
+    printf("=== Simple Restoring Division (Positive Numbers Only) ===\n");
+    
+    printf("Enter dividend (positive): ");
+    scanf("%d", &dividend);
+    
+    printf("Enter divisor (positive): ");
+    scanf("%d", &divisor);
+    
+    if (dividend < 0 || divisor <= 0) {
+       
+        return 1;
+    }
+    
+    quotient = restoringDivision(dividend, divisor, &remainder);
+    
+    printf("\n=== Results ===\n");
+    printf("Quotient: %d\n", quotient);
+    printf("Remainder: %d\n", remainder);
+    printf("Verification: %d = %d × %d + %d\n", 
+           dividend, divisor, quotient, remainder);
+    
+    return 0;
+}
+
+  
+
+</code></pre>
+
+</body>
+</html>
+
