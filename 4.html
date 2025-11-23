@@ -1,1 +1,246 @@
 
+<html>
+<head>
+    <title>Python Code Display</title>
+</head>
+<body>
+
+<pre><code>
+
+
+
+#include<stdio.h>
+#define MAXpages 100
+#define MAXframes 10 
+
+void fifo(int pages , int frames){
+    int hits = 0 , faults = 0;
+    int k = 0 ;
+    printf("enter the pages seq");
+    int a[pages] , b[frames];
+    for(int i = 0 ; i < pages ; i++){
+        scanf("%d" , &a[i]);
+    }
+     int flag = 0 ;
+    for(int i = 0 ; i < frames ; i++){
+    b[i] = -1;
+    }
+    for(int i = 0 ; i < pages; i++){
+        flag = 0;
+        //search the page in the frame if it exists;
+        for(int j = 0 ; j < frames ; j++){
+            if(a[i]==b[j]){
+                //page found in the frame 
+                flag = 1; 
+                hits++;
+                printf("Its a HIT\n");
+                break;
+                
+            }
+        }
+        if(flag==0){
+            printf("\nIts a Fault\n");
+        faults++;
+        b[k] = a[i];
+        k = (k+1)%frames;
+        }
+        
+        printf("Current PAGE : %d\n",a[i]);
+        printf("Current Frame : \n");
+        for(int j = 0 ; j  < frames ;j++){
+            printf("%d , ", b[j]);
+        } 
+        printf("\n\n\n");
+    }
+    
+    printf("The number of faults : %d",faults);
+}
+
+
+
+
+void lru(int pages , int frames){
+    int hits=  0 ,  faults = 0 ;
+    int a[pages] , b[frames] , used[frames];
+    int flag = 0 ; 
+    printf("Enter the page sequence\n");
+    //taking the page sequence from the user
+    for(int i = 0 ; i < pages; i++){
+        scanf("%d",&a[i]);
+    }
+    
+       
+        //make all frames be -1 empty and used be empty -1 
+        for(int i = 0 ; i < frames ;i++){
+            b[i] = -1;
+            used[i] = -1; 
+        }
+    for(int i = 0 ; i < pages ; i++ ){
+        flag = 0;
+        printf("Current page : %d\n",a[i]);
+     
+        
+        
+        //check if it exists: 
+        for(int j = 0 ; j < frames ;j ++ ){
+            if(a[i]==b[j]){
+                printf("\nIts a hit\n");
+                hits++;
+                used[j] = i;
+                flag = 1;
+                break;
+            }
+        }
+        
+        if(flag==0){
+            //fault
+            printf("\nIts a fault\n");
+            faults++;
+            
+            //find if there are any empty frame
+            int pos = -1;
+            for(int j = 0 ; j < frames ; j++){
+                if(b[j]==-1){
+                    pos = j;
+                    break;
+                }
+            }
+            int minFrame = 0 ;
+            if(pos==-1){
+            
+            //find the appropriate frame
+            for(int j = 1 ; j < frames ; j++){
+                if(used[j] < used[minFrame]){
+                    minFrame = j;
+                }
+            }
+           
+            }
+            else{
+                minFrame = pos;
+            }
+            b[minFrame] = a[i];
+            used[minFrame] = i ;
+            
+            
+            
+            
+        }
+        
+        
+        // displaying the current status of the frame
+        
+        printf("\nThe curent status of the frame: \n");
+        for(int j = 0 ; j <frames; j++){
+            printf("%d ",b[j]);
+        }
+        printf("\n");
+    }
+    
+    printf("The no of faults are : %d",faults);
+    
+    
+    
+    
+    
+    
+}
+
+
+void lfu(int pages, int frames){
+    
+    int faults = 0 , hits= 0 ;
+      int a[pages] , b[frames]  , freq[frames];
+    int flag = 0 ; 
+    printf("Enter the page sequence\n");
+    //taking the page sequence from the user
+    for(int i = 0 ; i < pages; i++){
+        scanf("%d",&a[i]);
+    }
+    
+       //make all frames be -1 empty and used be empty -1 
+        for(int i = 0 ; i < frames ;i++){
+            b[i] = -1;
+           freq[i] = 0;
+        }
+        
+           for(int i = 0 ; i < pages ; i++ ){
+        flag = 0;
+        printf("Current page : %d\n",a[i]);
+        
+          //check if it exists: 
+        for(int j = 0 ; j < frames ;j ++ ){
+            if(a[i]==b[j]){
+                printf("\nIts a hit\n");
+                hits++;
+              freq[j]++;
+                flag = 1;
+                break;
+            }
+        }
+        
+        if(flag==0){
+            
+              //fault
+            printf("\nIts a fault\n");
+            faults++;
+            
+            //find if there are any empty frame
+            int pos = -1;
+            for(int j = 0 ; j < frames ; j++){
+                if(b[j]==-1){
+                    pos = j;
+                    break;
+                }
+            }
+            
+            if(pos==-1){
+                pos = 0 ;
+                int minFreq = freq[0];
+                for(int j = 1; j < frames ;j++){
+                    if(freq[j] < minFreq){
+                        minFreq = freq[j];
+                        pos = j ;
+                    }
+                }
+            }
+            
+            b[pos] = a[i]; // fit the page in the frame
+                freq[pos] = 1;
+            
+            
+            
+            
+            
+            
+        }
+        
+        
+    printf("\nThe current status of the frames : \n");
+    for(int j = 0 ; j < frames ; j++){
+        printf("%d ",b[j]);
+    }
+    printf("\n");
+    
+    
+}
+    printf("The no of faults %d",faults);
+}
+int main(){
+    int pages , frames;
+    printf("Enter the no of pages");
+    scanf("%d",&pages);
+    
+    printf("Enter the no of frames :");
+    scanf("%d",&frames);
+    lfu(pages,frames);
+    return 1;
+}
+     
+
+</code></pre>
+
+</body>
+</html>
+
+
