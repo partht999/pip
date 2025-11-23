@@ -1,1 +1,84 @@
+<html>
+<head>
+    <title>Python Code Display</title>
+</head>
+<body>
 
+<pre><code>
+#include<stdio.h>
+#include<stdlib.h>
+#include<math.h>
+
+int getBitWidth(int a , int b) {
+    int max = abs(a) > abs(b) ? abs(a) : abs(b);
+    int bits = 0;
+    while(max > 0) {
+        max >>= 1;
+        bits++;
+    }
+    return bits + 1;
+}
+
+void arithmeticRightShift(int *A, int *Q, int *Qn1, int bitWidth) {
+    int msbA = (*A >> (bitWidth-1)) & 1;
+    *Qn1 = *Q & 1;
+    
+    *Q = (*Q >> 1) | ((*A & 1) << (bitWidth - 1));
+    *A = (*A >> 1) | (msbA << (bitWidth - 1));
+    
+    int mask = (1 << bitWidth) - 1;
+    *A &= mask;
+    *Q &= mask;
+}
+
+int main() {
+    int M, Q;
+    printf("Enter Multiplicand: ");
+    scanf("%d",&M);
+    printf("Enter Multiplier: ");
+    scanf("%d",&Q);
+    
+    int bitWidth = getBitWidth(M , Q);
+    int A = 0;
+    int Qn1 = 0;
+    int count = bitWidth;
+    
+    int mask = (1 << bitWidth) - 1;
+    if(M < 0)M = (M + (1 << bitWidth)) & mask;
+    if(Q < 0)Q = (Q + (1 << bitWidth)) & mask;
+    
+    printf("Booth's Algorithm \n");
+    printf("Bit Width chosen = %d bits\n",bitWidth);
+    printf("Initial A=%d, Q=%d, Qn1=%d, M=%d\n",A,Q,Qn1,M);
+    while(count > 0) {
+        int Q0 = Q & 1;
+        
+        if(Q0 == 1 && Qn1 == 0) {
+            A = (A-M) & mask;
+            printf("Step: A = A - M => %d\n",A);
+        } else if(Q0 == 0 && Qn1 == 1) {
+            A = (A+M) & mask;
+            printf("Step: A = A + M => %d\n",A);
+        }
+        
+        arithmeticRightShift(&A, &Q, &Qn1, bitWidth);
+        printf("After Shift: A=%d, Q=%d, Qn1=%d\n", A, Q, Qn1);
+        
+        count--;
+    }
+    
+    int result = (A << bitWidth) | Q;
+    if(result & (1 << ((bitWidth * 2)-1))) {
+        result -= (1 << (bitWidth * 2));
+    }
+    printf("\nFinal Product: %d\n", result);
+    return 0;
+}
+
+
+
+  
+</code></pre>
+
+</body>
+</html>
