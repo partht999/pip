@@ -5,77 +5,61 @@
 <body>
 
 <pre><code>
-#include<stdio.h>
-#include<stdlib.h>
-#include<math.h>
+#server
+    import socket
 
-int getBitWidth(int a , int b) {
-    int max = abs(a) > abs(b) ? abs(a) : abs(b);
-    int bits = 0;
-    while(max > 0) {
-        max >>= 1;
-        bits++;
-    }
-    return bits + 1;
-}
+HOST = "127.0.0.1"
+PORT = 5000
 
-void arithmeticRightShift(int *A, int *Q, int *Qn1, int bitWidth) {
-    int msbA = (*A >> (bitWidth-1)) & 1;
-    *Qn1 = *Q & 1;
-    
-    *Q = (*Q >> 1) | ((*A & 1) << (bitWidth - 1));
-    *A = (*A >> 1) | (msbA << (bitWidth - 1));
-    
-    int mask = (1 << bitWidth) - 1;
-    *A &= mask;
-    *Q &= mask;
-}
+def process_paragraph(paragraph):
+    characters = len(paragraph.replace("\n", ""))
 
-int main() {
-    int M, Q;
-    printf("Enter Multiplicand: ");
-    scanf("%d",&M);
-    printf("Enter Multiplier: ");
-    scanf("%d",&Q);
-    
-    int bitWidth = getBitWidth(M , Q);
-    int A = 0;
-    int Qn1 = 0;
-    int count = bitWidth;
-    
-    int mask = (1 << bitWidth) - 1;
-    if(M < 0)M = (M + (1 << bitWidth)) & mask;
-    if(Q < 0)Q = (Q + (1 << bitWidth)) & mask;
-    
-    printf("Booth's Algorithm \n");
-    printf("Bit Width chosen = %d bits\n",bitWidth);
-    printf("Initial A=%d, Q=%d, Qn1=%d, M=%d\n",A,Q,Qn1,M);
-    while(count > 0) {
-        int Q0 = Q & 1;
-        
-        if(Q0 == 1 && Qn1 == 0) {
-            A = (A-M) & mask;
-            printf("Step: A = A - M => %d\n",A);
-        } else if(Q0 == 0 && Qn1 == 1) {
-            A = (A+M) & mask;
-            printf("Step: A = A + M => %d\n",A);
-        }
-        
-        arithmeticRightShift(&A, &Q, &Qn1, bitWidth);
-        printf("After Shift: A=%d, Q=%d, Qn1=%d\n", A, Q, Qn1);
-        
-        count--;
-    }
-    
-    int result = (A << bitWidth) | Q;
-    if(result & (1 << ((bitWidth * 2)-1))) {
-        result -= (1 << (bitWidth * 2));
-    }
-    printf("\nFinal Product: %d\n", result);
-    return 0;
-}
+    words = paragraph.split()
+    word_count = len(words)
+
+    sentence_count = paragraph.count(".")
+
+    return characters, word_count, sentence_count
+
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.bind((HOST, PORT))
+server_socket.listen(1)
+
+print("Server is listening on", HOST, PORT)
+
+conn, addr = server_socket.accept()
+print("Connected by:", addr)
+
+data = conn.recv(4096).decode()
+
+characters, words, sentences = process_paragraph(data)
+
+result = f"Characters: {characters}\nWords: {words}\nSentences: {sentences}"
+
+conn.send(result.encode())
+
+conn.close()
+server_socket.close()
 
 
+    #client
+import socket
+
+HOST = "127.0.0.1"
+PORT = 5000
+
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((HOST, PORT))
+
+paragraph = input("Enter a paragraph ending with full stop: ")
+
+client_socket.send((paragraph + "\n").encode())
+
+result = client_socket.recv(4096).decode()
+print("\nResult from server:")
+print(result)
+
+client_socket.close()
 
   
 </code></pre>
