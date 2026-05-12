@@ -1,0 +1,80 @@
+<html>
+<head>
+    <title>Python Code Display</title>
+</head>
+<body>
+
+<pre><code>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define N 4
+
+int goal[N][N]={{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,0}};
+
+int cost(int a[N][N]){
+    int c=0;
+    for(int i=0;i<N;i++)
+        for(int j=0;j<N;j++)
+            if(a[i][j] && a[i][j]!=goal[i][j])
+                c++;
+    return c;
+}
+
+void print(int a[N][N]){
+    for(int i=0;i<N;i++){
+        for(int j=0;j<N;j++)
+            printf("%d ",a[i][j]);
+        printf("\n");
+    }
+    printf("\n");
+}
+
+int main(){
+    int a[N][N],x,y;
+    printf("Enter puzzle:\n");
+    for(int i=0;i<N;i++)
+        for(int j=0;j<N;j++){
+            scanf("%d",&a[i][j]);
+            if(a[i][j]==0){x=i;y=j;}
+        }
+
+    clock_t s=clock();
+
+    print(a);
+    printf("Cost: %d\n",cost(a));
+
+    int dx[4]={1,0,-1,0};
+    int dy[4]={0,-1,0,1};
+
+    for(int k=0;k<4;k++){
+        int nx=x+dx[k],ny=y+dy[k];
+        if(nx>=0&&nx<4&&ny>=0&&ny<4){
+            int temp=a[x][y];
+            a[x][y]=a[nx][ny];
+            a[nx][ny]=temp;
+
+            print(a);
+            printf("Cost: %d\n",cost(a));
+
+            temp=a[x][y];
+            a[x][y]=a[nx][ny];
+            a[nx][ny]=temp;
+        }
+    }
+
+    clock_t e=clock();
+    printf("Time: %f\n",(double)(e-s)/CLOCKS_PER_SEC);
+
+    return 0;
+}
+</code></pre>
+
+</body>
+</html>
+
+
+
+
+

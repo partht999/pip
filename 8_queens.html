@@ -1,0 +1,57 @@
+<html>
+<head>
+    <title>Python Code Display</title>
+</head>
+<body>
+
+<pre><code>
+#include <stdio.h>
+#include <time.h>
+
+int board[20], n;
+
+int place(int row, int col) {
+    for (int i = 1; i < row; i++)
+        if (board[i] == col || abs(board[i] - col) == abs(i - row))
+            return 0;
+    return 1;
+}
+
+void queen(int row) {
+    for (int col = 1; col <= n; col++) {
+        if (place(row, col)) {
+            board[row] = col;
+            if (row == n) {
+                for (int i = 1; i <= n; i++)
+                    printf("%d ", board[i]);
+                printf("\n");
+            } else {
+                queen(row + 1);
+            }
+        }
+    }
+}
+
+int main() {
+    scanf("%d", &n);
+
+    time_t start, end;
+    start = time(NULL);
+
+    queen(1);
+
+    end = time(NULL);
+
+    printf("%.2f seconds\n", difftime(end, start));
+
+    return 0;
+}
+</code></pre>
+
+</body>
+</html>
+
+
+
+
+

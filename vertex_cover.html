@@ -1,0 +1,65 @@
+<html>
+<head>
+    <title>Python Code Display</title>
+</head>
+<body>
+
+<pre><code>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define V 20
+
+int g[V][V];
+
+int main(){
+    srand(time(0));
+
+    for(int i=0;i<V;i++)
+        for(int j=0;j<V;j++)
+            g[i][j]=0;
+
+    for(int i=0;i<V;i++)
+        for(int j=i+1;j<V;j++)
+            g[i][j]=g[j][i]=rand()%2;
+
+    printf("Graph:\n");
+    for(int i=0;i<V;i++){
+        for(int j=0;j<V;j++)
+            printf("%d ",g[i][j]);
+        printf("\n");
+    }
+
+    int visited[V]={0};
+
+    clock_t s=clock();
+
+    for(int i=0;i<V;i++){
+        for(int j=0;j<V;j++){
+            if(g[i][j] && !visited[i] && !visited[j]){
+                visited[i]=1;
+                visited[j]=1;
+            }
+        }
+    }
+
+    printf("Vertex Cover:\n");
+    for(int i=0;i<V;i++)
+        if(visited[i])
+            printf("%d ",i);
+
+    clock_t e=clock();
+    printf("\nTime: %f\n",(double)(e-s)/CLOCKS_PER_SEC);
+
+    return 0;
+}
+</code></pre>
+
+</body>
+</html>
+
+
+
+
+
