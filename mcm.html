@@ -1,0 +1,68 @@
+<html>
+<head>
+    <title>Python Code Display</title>
+</head>
+<body>
+
+<pre><code>
+
+#include <stdio.h>
+#include <limits.h>
+#include <time.h>
+
+int min(int a, int b) {
+    return a < b ? a : b;
+}
+
+int matrixChainOrder(int p[], int n) {
+    int m[n][n];
+
+    for (int i = 1; i < n; i++)
+        m[i][i] = 0;
+
+    for (int L = 2; L < n; L++) {
+        for (int i = 1; i < n - L + 1; i++) {
+            int j = i + L - 1;
+            m[i][j] = INT_MAX;
+            for (int k = i; k <= j - 1; k++) {
+                int q = m[i][k] + m[k + 1][j] + p[i - 1] * p[k] * p[j];
+                if (q < m[i][j])
+                    m[i][j] = q;
+            }
+        }
+    }
+
+    return m[1][n - 1];
+}
+
+int main() {
+    int n;
+    scanf("%d", &n);
+
+    int p[n];
+    for (int i = 0; i < n; i++)
+        scanf("%d", &p[i]);
+
+    time_t start, end;
+    start = time(NULL);
+
+    int result = matrixChainOrder(p, n);
+
+    end = time(NULL);
+
+    printf("%d\n", result);
+
+    double time_taken = difftime(end, start);
+    printf("%.2f seconds\n", time_taken);
+
+    return 0;
+}
+</code></pre>
+
+</body>
+</html>
+
+
+
+
+
