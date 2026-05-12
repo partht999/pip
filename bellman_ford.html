@@ -1,0 +1,80 @@
+<html>
+<head>
+    <title>Python Code Display</title>
+</head>
+<body>
+
+<pre><code>
+#include <stdio.h>
+#include <limits.h>
+#include <time.h>
+
+struct Edge {
+    int u, v, w;
+};
+
+void bellmanFord(struct Edge edges[], int V, int E, int src) {
+    int dist[V];
+
+    for (int i = 0; i < V; i++)
+        dist[i] = INT_MAX;
+
+    dist[src] = 0;
+
+    for (int i = 1; i <= V - 1; i++) {
+        for (int j = 0; j < E; j++) {
+            int u = edges[j].u;
+            int v = edges[j].v;
+            int w = edges[j].w;
+            if (dist[u] != INT_MAX && dist[u] + w < dist[v])
+                dist[v] = dist[u] + w;
+        }
+    }
+
+    for (int i = 0; i < E; i++) {
+        int u = edges[i].u;
+        int v = edges[i].v;
+        int w = edges[i].w;
+        if (dist[u] != INT_MAX && dist[u] + w < dist[v]) {
+            printf("Negative cycle\n");
+            return;
+        }
+    }
+
+    for (int i = 0; i < V; i++)
+        printf("%d ", dist[i]);
+    printf("\n");
+}
+
+int main() {
+    int V, E;
+    scanf("%d %d", &V, &E);
+
+    struct Edge edges[E];
+
+    for (int i = 0; i < E; i++)
+        scanf("%d %d %d", &edges[i].u, &edges[i].v, &edges[i].w);
+
+    int src;
+    scanf("%d", &src);
+
+    time_t start, end;
+    start = time(NULL);
+
+    bellmanFord(edges, V, E, src);
+
+    end = time(NULL);
+
+    printf("%.2f seconds\n", difftime(end, start));
+
+    return 0;
+}
+</code></pre>
+
+</body>
+</html>
+
+
+
+
+
