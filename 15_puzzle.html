@@ -7,65 +7,222 @@
 <pre><code>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <string.h>
+#include <math.h>
 
 #define N 4
+#define MAX 100000
 
-int goal[N][N]={{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,0}};
+typedef struct {
+    int mat[N][N];
+    int x, y;   // position of blank (0)
+    int g, h;   // cost + heuristic
+} Node;
 
-int cost(int a[N][N]){
-    int c=0;
-    for(int i=0;i<N;i++)
-        for(int j=0;j<N;j++)
-            if(a[i][j] && a[i][j]!=goal[i][j])
-                c++;
-    return c;
+/* ---------- Min Heap Priority Queue ---------- */
+
+Node heap[MAX];
+int size = 0;
+
+int compare(Node a, Node b) {
+    return (a.g + a.h) < (b.g + b.h);
 }
 
-void print(int a[N][N]){
-    for(int i=0;i<N;i++){
-        for(int j=0;j<N;j++)
-            printf("%d ",a[i][j]);
-        printf("\n");
-    }
-    printf("\n");
+void swap(Node *a, Node *b) {
+    Node temp = *a;
+    *a = *b;
+    *b = temp;
 }
 
-int main(){
-    int a[N][N],x,y;
-    printf("Enter puzzle:\n");
-    for(int i=0;i<N;i++)
-        for(int j=0;j<N;j++){
-            scanf("%d",&a[i][j]);
-            if(a[i][j]==0){x=i;y=j;}
-        }
+void push(Node node) {
+    heap[size] = node;
+    int i = size++;
+    
+    while (i > 0) {
+        int p = (i - 1) / 2;
+        if (compare(heap[i], heap[p])) {
+            swap(&heap[i], &heap[p]);
+            i = p;
+        } else break;
+    }
+}
 
-    clock_t s=clock();
+Node pop() {
+    Node root = heap[0];
+    heap[0] = heap[--size];
 
-    print(a);
-    printf("Cost: %d\n",cost(a));
+    int i = 0;
+    while (1) {
+        int l = 2*i + 1, r = 2*i + 2, smallest = i;
 
-    int dx[4]={1,0,-1,0};
-    int dy[4]={0,-1,0,1};
+        if (l < size && compare(heap[l], heap[smallest]))
+            smallest = l;
+        if (r < size && compare(heap[r], heap[smallest]))
+            smallest = r;
 
-    for(int k=0;k<4;k++){
-        int nx=x+dx[k],ny=y+dy[k];
-        if(nx>=0&&nx<4&&ny>=0&&ny<4){
-            int temp=a[x][y];
-            a[x][y]=a[nx][ny];
-            a[nx][ny]=temp;
+        if (smallest != i) {
+            swap(&heap[i], &heap[smallest]);
+            i = smallest;
+        } else break;
+    }
 
-            print(a);
-            printf("Cost: %d\n",cost(a));
+    return root;
+}
 
-            temp=a[x][y];
-            a[x][y]=a[nx][ny];
-            a[nx][ny]=temp;
+int empty() {
+    return size == 0;
+}
+
+/* ---------- Heuristic (Manhattan Distance) ---------- */
+
+int heuristic(int mat[N][N]) {
+    int h = 0;
+
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            if (mat[i][j] != 0) {
+                int val = mat[i][j] - 1;
+                int goalX = val / N;
+                int goalY = val % N;
+
+                h += abs(i - goalX) + abs(j - goalY);
+            }
         }
     }
 
-    clock_t e=clock();
-    printf("Time: %f\n",(double)(e-s)/CLOCKS_PER_SEC);
+    return h;
+}
+
+/* ---------- Goal Check ---------- */
+
+int isGoal(int mat[N][N]) {
+    int goal[4][4] = {
+        {1,2,3,4},
+        {5,6,7,8},
+        {9,10,11,12},
+        {13,14,15,0}
+    };
+
+    for (int i = 0; i < N; i++)
+        for (int j = 0; j < N; j++)
+            if (mat[i][j] != goal[i][j])
+                return 0;
+
+    return 1;
+}
+
+/* ---------- Encode state for visited ---------- */
+
+char visited[1000000][20];
+int visCount = 0;
+
+void encode(int mat[N][N], char *str) {
+    int k = 0;
+    for (int i = 0; i < N; i++)
+        for (int j = 0; j < N; j++)
+            str[k++] = mat[i][j] + '0';
+    str[k] = '\0';
+}
+
+int isVisited(char *s) {
+    for (int i = 0; i < visCount; i++)
+        if (strcmp(visited[i], s) == 0)
+            return 1;
+    return 0;
+}
+
+void markVisited(char *s) {
+    strcpy(visited[visCount++], s);
+}
+
+/* ---------- A* Solver ---------- */
+
+void solve(int start[N][N], int sx, int sy) {
+
+    Node root;
+    memcpy(root.mat, start, sizeof(root.mat));
+    root.x = sx;
+    root.y = sy;
+    root.g = 0;
+    root.h = heuristic(root.mat);
+
+    push(root);
+
+    int dx[] = {1, -1, 0, 0};
+    int dy[] = {0, 0, 1, -1};
+
+    while (!empty()) {
+
+        Node curr = pop();
+
+        char state[20];
+        encode(curr.mat, state);
+
+        if (isVisited(state))
+            continue;
+
+        markVisited(state);
+
+        printf("g=%d h=%d\n", curr.g, curr.h);
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++)
+                printf("%d ", curr.mat[i][j]);
+            printf("\n");
+        }
+        printf("------\n");
+
+        if (isGoal(curr.mat)) {
+            printf("SOLVED in %d moves!\n", curr.g);
+            return;
+        }
+
+        for (int i = 0; i < 4; i++) {
+            int nx = curr.x + dx[i];
+            int ny = curr.y + dy[i];
+
+            if (nx >= 0 && ny >= 0 && nx < N && ny < N) {
+
+                Node next = curr;
+
+                // swap blank
+                int temp = next.mat[curr.x][curr.y];
+                next.mat[curr.x][curr.y] = next.mat[nx][ny];
+                next.mat[nx][ny] = temp;
+
+                next.x = nx;
+                next.y = ny;
+                next.g = curr.g + 1;
+                next.h = heuristic(next.mat);
+
+                encode(next.mat, state);
+
+                if (!isVisited(state))
+                    push(next);
+            }
+        }
+    }
+
+    printf("No solution found\n");
+}
+
+/* ---------- MAIN ---------- */
+
+int main() {
+
+    int puzzle[N][N] = {
+        {1,2,3,4},
+        {5,6,7,8},
+        {9,10,11,12},
+        {13,0,14,15}
+    };
+
+    int x, y;
+    for (int i = 0; i < N; i++)
+        for (int j = 0; j < N; j++)
+            if (puzzle[i][j] == 0)
+                x = i, y = j;
+
+    solve(puzzle, x, y);
 
     return 0;
 }
