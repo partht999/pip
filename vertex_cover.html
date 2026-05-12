@@ -13,44 +13,60 @@
 
 int g[V][V];
 
-int main(){
+int main() {
+
     srand(time(0));
 
-    for(int i=0;i<V;i++)
-        for(int j=0;j<V;j++)
-            g[i][j]=0;
+    // Step 1: Generate random undirected graph
+    for (int i = 0; i < V; i++)
+        for (int j = i + 1; j < V; j++)
+            g[i][j] = g[j][i] = rand() % 2;
 
-    for(int i=0;i<V;i++)
-        for(int j=i+1;j<V;j++)
-            g[i][j]=g[j][i]=rand()%2;
-
-    printf("Graph:\n");
-    for(int i=0;i<V;i++){
-        for(int j=0;j<V;j++)
-            printf("%d ",g[i][j]);
+    printf("Graph adjacency matrix:\n");
+    for (int i = 0; i < V; i++) {
+        for (int j = 0; j < V; j++)
+            printf("%d ", g[i][j]);
         printf("\n");
     }
 
-    int visited[V]={0};
+    int cover[V] = {0};   // 1 if vertex is in vertex cover
 
-    clock_t s=clock();
+    clock_t start = clock();
 
-    for(int i=0;i<V;i++){
-        for(int j=0;j<V;j++){
-            if(g[i][j] && !visited[i] && !visited[j]){
-                visited[i]=1;
-                visited[j]=1;
+    // Step 2: Vertex Cover Approximation
+    for (int i = 0; i < V; i++) {
+        for (int j = i + 1; j < V; j++) {
+
+            // if edge exists and both endpoints not yet removed
+            if (g[i][j] == 1) {
+
+                // add both endpoints to vertex cover
+                cover[i] = 1;
+                cover[j] = 1;
+
+                // Step 3: REMOVE all edges incident on i and j
+                for (int k = 0; k < V; k++) {
+                    g[i][k] = 0;
+                    g[k][i] = 0;
+
+                    g[j][k] = 0;
+                    g[k][j] = 0;
+                }
             }
         }
     }
 
-    printf("Vertex Cover:\n");
-    for(int i=0;i<V;i++)
-        if(visited[i])
-            printf("%d ",i);
+    clock_t end = clock();
 
-    clock_t e=clock();
-    printf("\nTime: %f\n",(double)(e-s)/CLOCKS_PER_SEC);
+    // Step 4: Print Vertex Cover
+    printf("\nVertex Cover Set:\n");
+    for (int i = 0; i < V; i++) {
+        if (cover[i])
+            printf("%d ", i);
+    }
+
+    printf("\nTime taken: %f seconds\n",
+           (double)(end - start) / CLOCKS_PER_SEC);
 
     return 0;
 }
