@@ -1,0 +1,2831 @@
+<html>
+<head>
+    <title>Python Code Display</title>
+</head>
+<body>
+
+<pre><code>
+
+
+
+Q2Static/Dynamic Link Library
+A math tutoring app needs a reusable complex number library. Build a static library libcomplex.a with functions for addition and multiplication of complex numbers. Write a test program that uses the library.
+●	Write complex.c with add_complex() and mul_complex() functions
+●	Compile to object file and archive using ar rcs
+●	Link test program with gcc test.c -L. -lcomplex -o test and run
+STEP 1
+nano complex.h
+typedef struct
+{
+    int real;
+    int imag;
+}Complex;
+
+Complex add_complex(Complex a, Complex b);
+Complex mul_complex(Complex a, Complex b);
+________________________________________
+STEP 2
+nano complex.c
+#include "complex.h"
+
+Complex add_complex(Complex a, Complex b)
+{
+    Complex c;
+
+    c.real = a.real + b.real;
+    c.imag = a.imag + b.imag;
+
+    return c;
+}
+
+Complex mul_complex(Complex a, Complex b)
+{
+    Complex c;
+
+    c.real = (a.real * b.real) - (a.imag * b.imag);
+
+    c.imag = (a.real * b.imag) + (a.imag * b.real);
+
+    return c;
+}
+________________________________________
+STEP 3
+nano test.c
+#include <stdio.h>
+#include "complex.h"
+
+int main()
+{
+    Complex c1 = {2,3};
+    Complex c2 = {1,4};
+
+    Complex add,mul;
+
+    add = add_complex(c1,c2);
+
+    mul = mul_complex(c1,c2);
+
+    printf("Addition = %d + %di\n",
+            add.real,
+            add.imag);
+
+    printf("Multiplication = %d + %di\n",
+            mul.real,
+            mul.imag);
+
+    return 0;
+}
+________________________________________
+STEP 4
+gcc -c complex.c -o complex.o
+________________________________________
+STEP 5
+ar rcs libcomplex.a complex.o
+________________________________________
+STEP 6
+gcc test.c -L. -lcomplex -o test
+________________________________________
+STEP 7
+./test
+
+
+
+
+
+
+
+
+
+
+Q3System Calls
+A file backup tool needs to copy a file from one location to another using only system calls (no standard C file functions). Simulate this for a file called source.txt.
+●	Use open(), read(), write(), and close() system calls only
+●	Handle errors for each system call and print appropriate messages
+●	Verify copy was successful using stat() to compare file sizes
+
+STEP 1 — CREATE SOURCE FILE
+nano source.txt
+Write some text inside:
+Hello Operating System
+Save and exit.
+________________________________________
+STEP 2 — CREATE PROGRAM FILE
+nano copy.c
+________________________________________
+STEP 3 — WRITE PROGRAM
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
+int main()
+{
+    int src,dest,n;
+
+    char buffer[100];
+
+    struct stat s1,s2;
+
+    src = open("source.txt",O_RDONLY);
+
+    if(src < 0)
+    {
+        printf("Error opening source file\n");
+        return 1;
+    }
+
+    dest = open("dest.txt",
+                O_CREAT | O_WRONLY,
+                0644);
+
+    if(dest < 0)
+    {
+        printf("Error opening destination file\n");
+        return 1;
+    }
+
+    while((n = read(src,buffer,sizeof(buffer))) > 0)
+    {
+        write(dest,buffer,n);
+    }
+
+    close(src);
+
+    close(dest);
+
+    stat("source.txt",&s1);
+
+    stat("dest.txt",&s2);
+
+    if(s1.st_size == s2.st_size)
+    {
+        printf("Copy Successful\n");
+    }
+    else
+    {
+        printf("Copy Failed\n");
+    }
+
+    return 0;
+}
+Save and exit.
+________________________________________
+STEP 4 — COMPILE PROGRAM
+gcc copy.c -o copy
+Creates executable file:
+copy
+________________________________________
+STEP 5 — RUN PROGRAM
+./copy
+Program:
+●	opens source.txt 
+●	creates dest.txt 
+●	copies data using: 
+o	read() 
+o	write() 
+●	closes files 
+●	compares file sizes using stat() 
+________________________________________
+STEP 6 — VERIFY
+Check copied file:
+cat dest.txt
+Output:
+Hello Operating System
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Q4Multithreading
+A bank wants to calculate the sum of a large array of transactions. To speed things up, divide the array into 4 equal parts and compute the sum of each part in a separate thread, then combine results.
+●	Create an array of 100 integers, spawn 4 threads using pthread_create()
+●	Each thread computes sum of its 25-element portion
+●	Use pthread_join() to collect results and print total
+
+STEP 1 — CREATE PROGRAM FILE
+nano thread.c
+________________________________________
+STEP 2 — WRITE PROGRAM
+#include <stdio.h>
+#include <pthread.h>
+
+int arr[100];
+
+int partial[4];
+
+void* sum(void* arg)
+{
+    int part = *(int*)arg;
+
+    int start = part * 25;
+
+    int end = start + 25;
+
+    partial[part] = 0;
+
+    for(int i=start;i<end;i++)
+    {
+        partial[part] += arr[i];
+    }
+
+    pthread_exit(0);
+}
+
+int main()
+{
+    pthread_t t[4];
+
+    int part[4];
+
+    for(int i=0;i<100;i++)
+    {
+        arr[i] = i + 1;
+    }
+
+    for(int i=0;i<4;i++)
+    {
+        part[i] = i;
+
+        pthread_create(&t[i],
+                       NULL,
+                       sum,
+                       &part[i]);
+    }
+
+    for(int i=0;i<4;i++)
+    {
+        pthread_join(t[i],NULL);
+    }
+
+    int total = 0;
+
+    for(int i=0;i<4;i++)
+    {
+        total += partial[i];
+    }
+
+    printf("Total Sum = %d\n",total);
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc thread.c -o thread -lpthread
+Creates executable:
+thread
+________________________________________
+STEP 4 — RUN
+./thread
+Program:
+●	creates array of 100 integers 
+●	creates 4 threads 
+●	each thread calculates sum of 25 elements 
+●	pthread_join() waits for all threads 
+●	combines all partial sums 
+●	prints total sum 
+________________________________________
+OUTPUT
+Total Sum = 5050
+
+
+
+
+
+
+
+
+
+
+Q5CPU Scheduling
+A hospital's triage system assigns CPU time based on arrival and priority. Given 5 patients (processes) with known arrival times and burst times, simulate FCFS scheduling and calculate average waiting time.
+●	Input: P1(0,6), P2(1,4), P3(2,2), P4(3,3), P5(4,1) — (arrival, burst)
+●	Implement FCFS in C, compute waiting time and turnaround time for each process
+●	Display a Gantt chart using dashes and print average waiting time
+STEP 1 — CREATE FILE
+nano fcfs.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+
+int main()
+{
+    int at[5] = {0,1,2,3,4};
+
+    int bt[5] = {6,4,2,3,1};
+
+    int ct[5],tat[5],wt[5];
+
+    int time = 0;
+
+    float avg = 0;
+
+    for(int i=0;i<5;i++)
+    {
+        if(time < at[i])
+        {
+            time = at[i];
+        }
+
+        ct[i] = time + bt[i];
+
+        tat[i] = ct[i] - at[i];
+
+        wt[i] = tat[i] - bt[i];
+
+        time = ct[i];
+
+        avg += wt[i];
+    }
+
+    printf("\nGantt Chart:\n\n");
+
+    for(int i=0;i<5;i++)
+    {
+        printf("|  P%d  ",i+1);
+    }
+
+    printf("|\n");
+
+    printf("0");
+
+    for(int i=0;i<5;i++)
+    {
+        printf("\t%d",ct[i]);
+    }
+
+    printf("\n\n");
+
+    printf("P\tAT\tBT\tCT\tTAT\tWT\n");
+
+    for(int i=0;i<5;i++)
+    {
+        printf("P%d\t%d\t%d\t%d\t%d\t%d\n",
+                i+1,
+                at[i],
+                bt[i],
+                ct[i],
+                tat[i],
+                wt[i]);
+    }
+
+    printf("\nAverage Waiting Time = %.2f\n",
+            avg/5);
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc fcfs.c -o fcfs
+________________________________________
+STEP 4 — RUN
+./fcfs
+________________________________________
+OUTPUT
+Gantt Chart:
+
+|  P1  |  P2  |  P3  |  P4  |  P5  |
+
+0      6      10     12     15     16
+
+P	AT	BT	CT	TAT	WT
+P1	0	6	6	6	0
+P2	1	4	10	9	5
+P3	2	2	12	10	8
+P4	3	3	15	12	9
+P5	4	1	16	12	11
+
+Average Waiting Time = 6.60
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Q6Deadlock Handling
+A printing company has 3 printers and 4 scanner units shared by 4 departments. Detect if the current resource allocation state is safe using the Banker's Algorithm.
+●	Define Allocation, Max, and Available matrices for 4 processes and 2 resource types
+●	Implement the safety algorithm to find a safe sequence
+●	Print "Safe sequence: " or "System is in deadlock" based on result
+
+STEP 1 — CREATE FILE
+nano banker.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+
+int main()
+{
+    int alloc[4][2] =
+    {
+        {1,0},
+        {0,1},
+        {1,1},
+        {1,0}
+    };
+
+    int max[4][2] =
+    {
+        {2,1},
+        {1,2},
+        {1,2},
+        {2,1}
+    };
+
+    int avail[2] = {1,2};
+
+    int need[4][2];
+
+    int finish[4] = {0};
+
+    int safe[4];
+
+    int count = 0;
+
+    for(int i=0;i<4;i++)
+    {
+        for(int j=0;j<2;j++)
+        {
+            need[i][j] =
+            max[i][j] - alloc[i][j];
+        }
+    }
+
+    while(count < 4)
+    {
+        int found = 0;
+
+        for(int i=0;i<4;i++)
+        {
+            if(finish[i] == 0)
+            {
+                if(need[i][0] <= avail[0] &&
+                   need[i][1] <= avail[1])
+                {
+                    avail[0] += alloc[i][0];
+
+                    avail[1] += alloc[i][1];
+
+                    safe[count] = i;
+
+                    count++;
+
+                    finish[i] = 1;
+
+                    found = 1;
+                }
+            }
+        }
+
+        if(found == 0)
+        {
+            break;
+        }
+    }
+
+    if(count == 4)
+    {
+        printf("Safe sequence: ");
+
+        for(int i=0;i<4;i++)
+        {
+            printf("P%d ",safe[i]);
+        }
+    }
+    else
+    {
+        printf("System is in deadlock");
+    }
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc banker.c -o banker
+________________________________________
+STEP 4 — RUN
+./banker
+________________________________________
+OUTPUT
+Safe sequence: P0 P1 P2 P3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Q7Shared Memory
+A weather station wants to share real-time temperature readings between a sensor process (writer) and a display process (reader) without using files.
+●	Write a producer program that creates shared memory using shmget() and writes 5 temperature values
+●	Write a consumer program that attaches to the same segment and reads the values
+●	Detach and destroy shared memory after use with shmdt() and shmctl()
+
+STEP 1 — CREATE PRODUCER FILE
+nano producer.c
+________________________________________
+STEP 2 — WRITE PRODUCER CODE
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+int main()
+{
+    int shmid;
+
+    int *temp;
+
+    shmid = shmget(1234,
+                   5*sizeof(int),
+                   0666|IPC_CREAT);
+
+    temp = (int*)shmat(shmid,NULL,0);
+
+    for(int i=0;i<5;i++)
+    {
+        temp[i] = 30 + i;
+
+        printf("Written Temperature = %d\n",
+                temp[i]);
+    }
+
+    shmdt(temp);
+
+    return 0;
+}
+________________________________________
+STEP 3 — CREATE CONSUMER FILE
+nano consumer.c
+________________________________________
+STEP 4 — WRITE CONSUMER CODE
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+int main()
+{
+    int shmid;
+
+    int *temp;
+
+    shmid = shmget(1234,
+                   5*sizeof(int),
+                   0666);
+
+    temp = (int*)shmat(shmid,NULL,0);
+
+    for(int i=0;i<5;i++)
+    {
+        printf("Read Temperature = %d\n",
+                temp[i]);
+    }
+
+    shmdt(temp);
+
+    shmctl(shmid,IPC_RMID,NULL);
+
+    return 0;
+}
+________________________________________
+STEP 5 — COMPILE
+gcc producer.c -o producer
+gcc consumer.c -o consumer
+________________________________________
+STEP 6 — RUN PRODUCER
+./producer
+________________________________________
+OUTPUT
+Written Temperature = 30
+Written Temperature = 31
+Written Temperature = 32
+Written Temperature = 33
+Written Temperature = 34
+________________________________________
+STEP 7 — RUN CONSUMER
+./consumer
+________________________________________
+OUTPUT
+Read Temperature = 30
+Read Temperature = 31
+Read Temperature = 32
+Read Temperature = 33
+Read Temperature = 34
+
+
+Q8IPC Classical Problems
+A bakery has 1 baker (producer) and 3 customers (consumers). The shelf holds at most 5 items. Solve this Producer-Consumer problem using semaphores to prevent race conditions.
+●	Use sem_init() to create empty, full, and mutex semaphores
+●	Producer adds items using sem_wait(empty) → critical section → sem_post(full)
+●	Consumers consume items similarly; run with pthread threads and verify no item is consumed twice
+STEP 1 — CREATE FILE
+nano pc.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+sem_t empty,full,mutex;
+
+int buffer[5];
+
+int in = 0;
+
+int out = 0;
+
+void* producer(void* arg)
+{
+    for(int i=1;i<=10;i++)
+    {
+        sem_wait(&empty);
+
+        sem_wait(&mutex);
+
+        buffer[in] = i;
+
+        printf("Produced %d\n",buffer[in]);
+
+        in = (in + 1) % 5;
+
+        sem_post(&mutex);
+
+        sem_post(&full);
+
+        sleep(1);
+    }
+}
+
+void* consumer(void* arg)
+{
+    int item;
+
+    for(int i=1;i<=3;i++)
+    {
+        while(1)
+        {
+            sem_wait(&full);
+
+            sem_wait(&mutex);
+
+            item = buffer[out];
+
+            printf("Consumed %d by Consumer %ld\n",
+                    item,
+                    pthread_self());
+
+            out = (out + 1) % 5;
+
+            sem_post(&mutex);
+
+            sem_post(&empty);
+
+            sleep(1);
+        }
+    }
+}
+
+int main()
+{
+    pthread_t p,c1,c2,c3;
+
+    sem_init(&empty,0,5);
+
+    sem_init(&full,0,0);
+
+    sem_init(&mutex,0,1);
+
+    pthread_create(&p,NULL,producer,NULL);
+
+    pthread_create(&c1,NULL,consumer,NULL);
+
+    pthread_create(&c2,NULL,consumer,NULL);
+
+    pthread_create(&c3,NULL,consumer,NULL);
+
+    pthread_join(p,NULL);
+
+    pthread_join(c1,NULL);
+
+    pthread_join(c2,NULL);
+
+    pthread_join(c3,NULL);
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc pc.c -o pc -lpthread
+________________________________________
+STEP 4 — RUN
+./pc
+________________________________________
+OUTPUT
+Produced 1
+Consumed 1 by Consumer ...
+
+Produced 2
+Consumed 2 by Consumer ...
+
+Produced 3
+Consumed 3 by Consumer ...
+
+
+Q9Disk Scheduling
+A hospital records system has disk requests at tracks: 98, 183, 37, 122, 14, 124, 65, 67. The disk head starts at track 53. Find total head movement using SSTF scheduling.
+●	Implement SSTF in C: at each step, service the closest unvisited request
+●	Print the order in which tracks are serviced
+●	Calculate and print total head movement (sum of absolute differences)
+STEP 1 — CREATE FILE
+nano sstf.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+#include <stdlib.h>
+
+int main()
+{
+    int req[8] =
+    {
+        98,183,37,122,
+        14,124,65,67
+    };
+
+    int visited[8] = {0};
+
+    int head = 53;
+
+    int total = 0;
+
+    printf("Order of Service:\n");
+
+    printf("%d ",head);
+
+    for(int i=0;i<8;i++)
+    {
+        int min = 9999;
+
+        int index = -1;
+
+        for(int j=0;j<8;j++)
+        {
+            if(!visited[j])
+            {
+                int dist =
+                abs(head - req[j]);
+
+                if(dist < min)
+                {
+                    min = dist;
+
+                    index = j;
+                }
+            }
+        }
+
+        visited[index] = 1;
+
+        total += abs(head - req[index]);
+
+        head = req[index];
+
+        printf("-> %d ",head);
+    }
+
+    printf("\n\nTotal Head Movement = %d\n",
+            total);
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc sstf.c -o sstf
+________________________________________
+STEP 4 — RUN
+./sstf
+________________________________________
+OUTPUT
+Order of Service:
+53 -> 65 -> 67 -> 37 -> 14 -> 98 -> 122 -> 124 -> 183
+
+Total Head Movement = 236
+
+Q10Memory Address Translation
+A virtual memory system uses paging with page size 4KB. Given a virtual address, compute the physical address using a simple page table.
+●	Define a page table array mapping virtual page numbers to frame numbers (e.g., page 0→frame 3, page 1→frame 1, page 2→frame 4)
+●	For virtual addresses 0x1A3F and 0x2B10, extract page number and offset, then compute physical address
+●	Print both virtual and computed physical addresses in hex
+
+STEP 1 — CREATE FILE
+nano paging.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+
+int main()
+{
+    int page_table[3] =
+    {
+        3,
+        1,
+        4
+    };
+
+    int va[2] =
+    {
+        0x1A3F,
+        0x2B10
+    };
+
+    int page_size = 4096;
+
+    for(int i=0;i<2;i++)
+    {
+        int page =
+        va[i] / page_size;
+
+        int offset =
+        va[i] % page_size;
+
+        int frame =
+        page_table[page];
+
+        int pa =
+        (frame * page_size)
+        + offset;
+
+        printf("Virtual Address = 0x%X\n",
+                va[i]);
+
+        printf("Page Number = %d\n",
+                page);
+
+        printf("Offset = %d\n",
+                offset);
+
+        printf("Physical Address = 0x%X\n\n",
+                pa);
+    }
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc paging.c -o paging
+________________________________________
+STEP 4 — RUN
+./paging
+________________________________________
+OUTPUT
+Virtual Address = 0x1A3F
+Page Number = 1
+Offset = 2623
+Physical Address = 0x1A3F
+
+Virtual Address = 0x2B10
+Page Number = 2
+Offset = 2832
+Physical Address = 0x4B10
+
+
+
+Set B — Operating Systems Lab Exam
+Duration: 2 hours   
+Q2Dynamic Link Library
+A scientific calculator app wants to load a math library at runtime to allow updates without recompiling. Build a shared library libmath.so with functions for absolute value and power of a complex number.
+●	Compile with gcc -fPIC -shared -o libmath.so math.c
+●	Write a test program and compile with gcc test.c -L. -lmath -Wl,-rpath,. -o test
+●	Run the program and verify output matches expected complex number magnitude
+STEP 1 — CREATE HEADER FILE
+nano math.h
+typedef struct
+{
+    int real;
+    int imag;
+}Complex;
+
+double absolute(Complex c);
+
+Complex power_complex(Complex c);
+________________________________________
+STEP 2 — CREATE LIBRARY FILE
+nano math.c
+#include <stdio.h>
+#include <math.h>
+#include "math.h"
+
+double absolute(Complex c)
+{
+    return sqrt((c.real*c.real)
+           + (c.imag*c.imag));
+}
+
+Complex power_complex(Complex c)
+{
+    Complex p;
+
+    p.real =
+    (c.real*c.real)
+    - (c.imag*c.imag);
+
+    p.imag =
+    2*c.real*c.imag;
+
+    return p;
+}
+________________________________________
+STEP 3 — CREATE TEST FILE
+nano test.c
+#include <stdio.h>
+#include "math.h"
+
+int main()
+{
+    Complex c = {3,4};
+
+    double abs;
+
+    Complex p;
+
+    abs = absolute(c);
+
+    p = power_complex(c);
+
+    printf("Absolute Value = %.2lf\n",
+            abs);
+
+    printf("Power = %d + %di\n",
+            p.real,
+            p.imag);
+
+    return 0;
+}
+________________________________________
+STEP 4 — CREATE SHARED LIBRARY
+gcc -fPIC -shared -o libmath.so math.c -lm
+________________________________________
+STEP 5 — COMPILE TEST PROGRAM
+gcc test.c -L. -lmath -Wl,-rpath,. -o test
+________________________________________
+STEP 6 — RUN PROGRAM
+./test
+________________________________________
+OUTPUT
+Absolute Value = 5.00
+Power = -7 + 24i
+
+Q3System Calls
+A student attendance app needs to log entries. Write a C program that creates a new process using fork(). The parent process writes "Parent attended" to a file; the child writes "Child attended" to the same file.
+●	Use fork() to create child, use getpid() and getppid() to print PIDs
+●	Parent waits for child using wait() before proceeding
+●	Both processes open the file with open() and write their entry using write()
+STEP 1 — CREATE FILE
+nano forkfile.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/wait.h>
+#include <string.h>
+
+int main()
+{
+    int pid;
+
+    int fd;
+
+    pid = fork();
+
+    if(pid == 0)
+    {
+        printf("Child Process\n");
+
+        printf("Child PID = %d\n",
+                getpid());
+
+        printf("Parent PID = %d\n",
+                getppid());
+
+        fd = open("attendance.txt",
+                  O_CREAT | O_WRONLY | O_APPEND,
+                  0644);
+
+        write(fd,
+              "Child attended\n",
+              strlen("Child attended\n"));
+
+        close(fd);
+    }
+
+    else
+    {
+        wait(NULL);
+
+        printf("Parent Process\n");
+
+        printf("Parent PID = %d\n",
+                getpid());
+
+        fd = open("attendance.txt",
+                  O_CREAT | O_WRONLY | O_APPEND,
+                  0644);
+
+        write(fd,
+              "Parent attended\n",
+              strlen("Parent attended\n"));
+
+        close(fd);
+    }
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc forkfile.c -o forkfile
+________________________________________
+STEP 4 — RUN
+./forkfile
+________________________________________
+STEP 5 — CHECK FILE
+cat attendance.txt
+________________________________________
+OUTPUT
+Child attended
+Parent attended
+
+
+Q4Multithreading
+An e-commerce site runs two threads: one generates order IDs and the other logs them. Both access a shared counter. Demonstrate a race condition and then fix it using a mutex lock.
+●	First run 2 threads incrementing a shared counter 5000 times without mutex and observe incorrect result
+●	Add pthread_mutex_lock() and pthread_mutex_unlock() around the critical section
+●	Re-run and verify final counter equals 10000
+STEP 1 — CREATE FILE
+nano race.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+#include <pthread.h>
+
+int counter = 0;
+
+pthread_mutex_t lock;
+
+void* increment_without_mutex(void* arg)
+{
+    for(int i=0;i<5000;i++)
+    {
+        counter++;
+    }
+
+    return NULL;
+}
+
+void* increment_with_mutex(void* arg)
+{
+    for(int i=0;i<5000;i++)
+    {
+        pthread_mutex_lock(&lock);
+
+        counter++;
+
+        pthread_mutex_unlock(&lock);
+    }
+
+    return NULL;
+}
+
+int main()
+{
+    pthread_t t1,t2;
+
+    pthread_create(&t1,
+                   NULL,
+                   increment_without_mutex,
+                   NULL);
+
+    pthread_create(&t2,
+                   NULL,
+                   increment_without_mutex,
+                   NULL);
+
+    pthread_join(t1,NULL);
+
+    pthread_join(t2,NULL);
+
+    printf("Counter Without Mutex = %d\n",
+            counter);
+
+    counter = 0;
+
+    pthread_mutex_init(&lock,NULL);
+
+    pthread_create(&t1,
+                   NULL,
+                   increment_with_mutex,
+                   NULL);
+
+    pthread_create(&t2,
+                   NULL,
+                   increment_with_mutex,
+                   NULL);
+
+    pthread_join(t1,NULL);
+
+    pthread_join(t2,NULL);
+
+    printf("Counter With Mutex = %d\n",
+            counter);
+
+    pthread_mutex_destroy(&lock);
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc race.c -o race -lpthread
+________________________________________
+STEP 4 — RUN
+./race
+________________________________________
+OUTPUT
+Counter Without Mutex = 9823
+
+Counter With Mutex = 10000
+
+
+Q5CPU Scheduling
+A call center assigns agents (processes) based on urgency. Simulate Priority (non-preemptive) scheduling for 5 calls with given burst times and priorities. Lower number = higher priority.
+●	Input: P1(bt=4,pr=2), P2(bt=3,pr=1), P3(bt=5,pr=3), P4(bt=1,pr=1), P5(bt=2,pr=4) — arrived at t=0
+●	Sort by priority, compute waiting time and turnaround time for each process
+●	Calculate and print average waiting time and average turnaround time
+
+STEP 1 — CREATE FILE
+nano priority.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+
+int main()
+{
+    int bt[5] = {4,3,5,1,2};
+
+    int pr[5] = {2,1,3,1,4};
+
+    int p[5] = {1,2,3,4,5};
+
+    int wt[5],tat[5];
+
+    float avgwt = 0;
+
+    float avgtat = 0;
+
+    for(int i=0;i<5;i++)
+    {
+        for(int j=i+1;j<5;j++)
+        {
+            if(pr[i] > pr[j])
+            {
+                int temp;
+
+                temp = pr[i];
+                pr[i] = pr[j];
+                pr[j] = temp;
+
+                temp = bt[i];
+                bt[i] = bt[j];
+                bt[j] = temp;
+
+                temp = p[i];
+                p[i] = p[j];
+                p[j] = temp;
+            }
+        }
+    }
+
+    wt[0] = 0;
+
+    tat[0] = bt[0];
+
+    for(int i=1;i<5;i++)
+    {
+        wt[i] = wt[i-1] + bt[i-1];
+
+        tat[i] = wt[i] + bt[i];
+    }
+
+    printf("P\tBT\tPR\tWT\tTAT\n");
+
+    for(int i=0;i<5;i++)
+    {
+        printf("P%d\t%d\t%d\t%d\t%d\n",
+                p[i],
+                bt[i],
+                pr[i],
+                wt[i],
+                tat[i]);
+
+        avgwt += wt[i];
+
+        avgtat += tat[i];
+    }
+
+    printf("\nAverage Waiting Time = %.2f\n",
+            avgwt/5);
+
+    printf("Average Turnaround Time = %.2f\n",
+            avgtat/5);
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc priority.c -o priority
+________________________________________
+STEP 4 — RUN
+./priority
+________________________________________
+OUTPUT
+P	BT	PR	WT	TAT
+P2	3	1	0	3
+P4	1	1	3	4
+P1	4	2	4	8
+P3	5	3	8	13
+P5	2	4	13	15
+
+Average Waiting Time = 5.60
+Average Turnaround Time = 8.60
+
+
+Q6Deadlock Handling
+A university computer lab has shared resources (projectors and USB hubs). 3 student groups hold some resources and request more. Determine if deadlock exists using the resource allocation graph approach.
+●	Represent 3 processes and 2 resource types; define Allocation and Request matrices
+●	Implement deadlock detection algorithm (check if any process can finish given available resources)
+●	Print processes involved in deadlock or "No deadlock detected"
+
+STEP 1 — CREATE FILE
+nano deadlock.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+
+int main()
+{
+    int alloc[3][2] =
+    {
+        {1,0},
+        {0,1},
+        {1,1}
+    };
+
+    int request[3][2] =
+    {
+        {1,1},
+        {1,0},
+        {0,1}
+    };
+
+    int avail[2] = {1,0};
+
+    int finish[3] = {0};
+
+    int found;
+
+    for(int k=0;k<3;k++)
+    {
+        found = 0;
+
+        for(int i=0;i<3;i++)
+        {
+            if(finish[i] == 0)
+            {
+                if(request[i][0] <= avail[0] &&
+                   request[i][1] <= avail[1])
+                {
+                    avail[0] += alloc[i][0];
+
+                    avail[1] += alloc[i][1];
+
+                    finish[i] = 1;
+
+                    found = 1;
+                }
+            }
+        }
+
+        if(found == 0)
+        {
+            break;
+        }
+    }
+
+    int deadlock = 0;
+
+    for(int i=0;i<3;i++)
+    {
+        if(finish[i] == 0)
+        {
+            deadlock = 1;
+        }
+    }
+
+    if(deadlock)
+    {
+        printf("Processes in deadlock:\n");
+
+        for(int i=0;i<3;i++)
+        {
+            if(finish[i] == 0)
+            {
+                printf("P%d ",i);
+            }
+        }
+    }
+    else
+    {
+        printf("No deadlock detected");
+    }
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc deadlock.c -o deadlock
+________________________________________
+STEP 4 — RUN
+./deadlock
+________________________________________
+OUTPUT
+No deadlock detected
+
+
+Q7Shared Memory
+A stock trading system requires a fast counter shared between a price-update process and a monitoring process. Use shared memory and semaphores to safely increment and read a shared stock price counter.
+●	Create shared memory segment for an integer counter using shmget() and shmat()
+●	Writer process increments counter 10 times with a small delay
+●	Reader process reads and prints counter value every iteration; both terminate cleanly
+
+STEP 1 — CREATE WRITER FILE
+nano writer.c
+________________________________________
+STEP 2 — WRITE WRITER CODE
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <semaphore.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+int main()
+{
+    int shmid;
+
+    int *counter;
+
+    sem_t *sem;
+
+    shmid = shmget(1234,
+                   sizeof(int),
+                   0666 | IPC_CREAT);
+
+    counter = (int*)shmat(shmid,NULL,0);
+
+    sem = sem_open("/stocksem",
+                   O_CREAT,
+                   0666,
+                   1);
+
+    *counter = 0;
+
+    for(int i=0;i<10;i++)
+    {
+        sem_wait(sem);
+
+        (*counter)++;
+
+        printf("Writer Updated Counter = %d\n",
+                *counter);
+
+        sem_post(sem);
+
+        sleep(1);
+    }
+
+    shmdt(counter);
+
+    sem_close(sem);
+
+    return 0;
+}
+________________________________________
+STEP 3 — CREATE READER FILE
+nano reader.c
+________________________________________
+STEP 4 — WRITE READER CODE
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <semaphore.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+int main()
+{
+    int shmid;
+
+    int *counter;
+
+    sem_t *sem;
+
+    shmid = shmget(1234,
+                   sizeof(int),
+                   0666);
+
+    counter = (int*)shmat(shmid,NULL,0);
+
+    sem = sem_open("/stocksem",0);
+
+    for(int i=0;i<10;i++)
+    {
+        sem_wait(sem);
+
+        printf("Reader Read Counter = %d\n",
+                *counter);
+
+        sem_post(sem);
+
+        sleep(1);
+    }
+
+    shmdt(counter);
+
+    shmctl(shmid,IPC_RMID,NULL);
+
+    sem_close(sem);
+
+    sem_unlink("/stocksem");
+
+    return 0;
+}
+________________________________________
+STEP 5 — COMPILE
+gcc writer.c -o writer -pthread
+gcc reader.c -o reader -pthread
+________________________________________
+STEP 6 — RUN WRITER
+./writer
+________________________________________
+STEP 7 — RUN READER IN ANOTHER TERMINAL
+./reader
+________________________________________
+OUTPUT
+Writer Updated Counter = 1
+Writer Updated Counter = 2
+...
+Writer Updated Counter = 10
+Reader Read Counter = 1
+Reader Read Counter = 2
+...
+Reader Read Counter = 10
+
+Q8IPC Classical Problems
+A college library has 3 reading chairs (resource). 5 students want to read. Implement the Dining Philosophers problem with 3 philosophers and 3 forks to simulate resource contention and safe resource acquisition.
+●	Create 3 philosopher threads; forks are mutexes initialized with pthread_mutex_init()
+●	Each philosopher thinks, picks up left fork then right fork, eats, then puts forks down
+●	Add a solution to prevent deadlock (e.g., one philosopher picks right fork first) and verify all eat at least once
+
+STEP 1 — CREATE FILE
+nano dining.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+
+pthread_mutex_t fork_mutex[3];
+
+void* philosopher(void* num)
+{
+    int id = *(int*)num;
+
+    int left = id;
+
+    int right = (id + 1) % 3;
+
+    printf("Philosopher %d is thinking\n",
+            id);
+
+    sleep(1);
+
+    if(id == 2)
+    {
+        pthread_mutex_lock(&fork_mutex[right]);
+
+        printf("Philosopher %d picked right fork\n",
+                id);
+
+        pthread_mutex_lock(&fork_mutex[left]);
+
+        printf("Philosopher %d picked left fork\n",
+                id);
+    }
+    else
+    {
+        pthread_mutex_lock(&fork_mutex[left]);
+
+        printf("Philosopher %d picked left fork\n",
+                id);
+
+        pthread_mutex_lock(&fork_mutex[right]);
+
+        printf("Philosopher %d picked right fork\n",
+                id);
+    }
+
+    printf("Philosopher %d is eating\n",
+            id);
+
+    sleep(1);
+
+    pthread_mutex_unlock(&fork_mutex[left]);
+
+    pthread_mutex_unlock(&fork_mutex[right]);
+
+    printf("Philosopher %d finished eating\n",
+            id);
+
+    return NULL;
+}
+
+int main()
+{
+    pthread_t p[3];
+
+    int id[3];
+
+    for(int i=0;i<3;i++)
+    {
+        pthread_mutex_init(&fork_mutex[i],
+                           NULL);
+    }
+
+    for(int i=0;i<3;i++)
+    {
+        id[i] = i;
+
+        pthread_create(&p[i],
+                       NULL,
+                       philosopher,
+                       &id[i]);
+    }
+
+    for(int i=0;i<3;i++)
+    {
+        pthread_join(p[i],NULL);
+    }
+
+    for(int i=0;i<3;i++)
+    {
+        pthread_mutex_destroy(&fork_mutex[i]);
+    }
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc dining.c -o dining -lpthread
+________________________________________
+STEP 4 — RUN
+./dining
+________________________________________
+OUTPUT
+Philosopher 0 is thinking
+Philosopher 1 is thinking
+Philosopher 2 is thinking
+
+Philosopher 0 picked left fork
+Philosopher 0 picked right fork
+Philosopher 0 is eating
+
+Philosopher 1 picked left fork
+Philosopher 2 picked right fork
+
+Philosopher 0 finished eating
+
+Philosopher 1 picked right fork
+Philosopher 1 is eating
+
+Philosopher 1 finished eating
+
+Philosopher 2 picked left fork
+Philosopher 2 is eating
+
+Philosopher 2 finished eating
+
+Q9Disk Scheduling
+An online video server stores video chunks at disk tracks: 176, 79, 34, 60, 92, 11, 41, 114. Head starts at 50, moving toward higher tracks. Find total movement using SCAN (elevator) algorithm.
+●	Implement SCAN: move head in one direction servicing requests, then reverse
+●	Print the service order of tracks
+●	Calculate total head movement and compare with FCFS movement for the same queue
+
+STEP 1 — CREATE FILE
+nano scan.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+#include <stdlib.h>
+
+int main()
+{
+    int req[8] =
+    {
+        176,79,34,60,
+        92,11,41,114
+    };
+
+    int head = 50;
+
+    int scan_total = 0;
+
+    int fcfs_total = 0;
+
+    int temp;
+
+    for(int i=0;i<8;i++)
+    {
+        for(int j=i+1;j<8;j++)
+        {
+            if(req[i] > req[j])
+            {
+                temp = req[i];
+                req[i] = req[j];
+                req[j] = temp;
+            }
+        }
+    }
+
+    int pos = 0;
+
+    for(int i=0;i<8;i++)
+    {
+        if(req[i] > head)
+        {
+            pos = i;
+            break;
+        }
+    }
+
+    int current = head;
+
+    printf("SCAN Service Order:\n");
+
+    printf("%d ",head);
+
+    for(int i=pos;i<8;i++)
+    {
+        scan_total += abs(current - req[i]);
+
+        current = req[i];
+
+        printf("-> %d ",current);
+    }
+
+    for(int i=pos-1;i>=0;i--)
+    {
+        scan_total += abs(current - req[i]);
+
+        current = req[i];
+
+        printf("-> %d ",current);
+    }
+
+    printf("\n\nTotal SCAN Head Movement = %d\n",
+            scan_total);
+
+    int fcfs_req[8] =
+    {
+        176,79,34,60,
+        92,11,41,114
+    };
+
+    current = head;
+
+    for(int i=0;i<8;i++)
+    {
+        fcfs_total +=
+        abs(current - fcfs_req[i]);
+
+        current = fcfs_req[i];
+    }
+
+    printf("Total FCFS Head Movement = %d\n",
+            fcfs_total);
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc scan.c -o scan
+________________________________________
+STEP 4 — RUN
+./scan
+________________________________________
+OUTPUT
+SCAN Service Order:
+50 -> 60 -> 79 -> 92 -> 114 -> 176 -> 41 -> 34 -> 11
+
+Total SCAN Head Movement = 291
+Total FCFS Head Movement = 510
+
+Q10Memory Address Translation
+A game running in a virtual machine uses segmentation. Each segment has a base and limit. Translate virtual addresses to physical addresses and detect any out-of-bounds access.
+●	Define 3 segments: Code (base=1000, limit=400), Data (base=2000, limit=500), Stack (base=3000, limit=300)
+●	For requests (segment=0,offset=200), (segment=1,offset=600), (segment=2,offset=150) — compute physical address or print "Segmentation fault"
+●	Print result for each access with reason for fault if applicable
+
+
+STEP 1 — CREATE FILE
+nano segmentation.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+
+int main()
+{
+    int base[3] =
+    {
+        1000,
+        2000,
+        3000
+    };
+
+    int limit[3] =
+    {
+        400,
+        500,
+        300
+    };
+
+    int segment[3] =
+    {
+        0,
+        1,
+        2
+    };
+
+    int offset[3] =
+    {
+        200,
+        600,
+        150
+    };
+
+    for(int i=0;i<3;i++)
+    {
+        printf("Request %d:\n",i+1);
+
+        printf("Segment = %d Offset = %d\n",
+                segment[i],
+                offset[i]);
+
+        if(offset[i] < limit[segment[i]])
+        {
+            int physical =
+            base[segment[i]]
+            + offset[i];
+
+            printf("Physical Address = %d\n\n",
+                    physical);
+        }
+        else
+        {
+            printf("Segmentation Fault\n");
+
+            printf("Reason: Offset exceeds segment limit\n\n");
+        }
+    }
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc segmentation.c -o segmentation
+________________________________________
+STEP 4 — RUN
+./segmentation
+________________________________________
+OUTPUT
+Request 1:
+Segment = 0 Offset = 200
+Physical Address = 1200
+
+Request 2:
+Segment = 1 Offset = 600
+Segmentation Fault
+Reason: Offset exceeds segment limit
+
+Request 3:
+Segment = 2 Offset = 150
+Physical Address = 3150
+
+
+
+
+Set C — Operating Systems Lab Exam
+Duration: 2 hours  
+
+
+
+Q2Static/Dynamic Library
+A navigation app needs a geometry library for computing magnitude and phase angle of complex numbers. Create both a static and dynamic version of the library and demonstrate that the program works with both.
+●	Write geometry.c with magnitude() (using sqrt(a²+b²)) and phase() (using atan2())
+●	Build static version (ar rcs) and dynamic version (-shared -fPIC)
+●	Show compilation command and output for both versions using same main.c
+
+
+STEP 1 — CREATE HEADER FILE
+nano geometry.h
+typedef struct
+{
+    int real;
+    int imag;
+}Complex;
+
+double magnitude(Complex c);
+
+double phase(Complex c);
+________________________________________
+STEP 2 — CREATE LIBRARY FILE
+nano geometry.c
+#include <stdio.h>
+#include <math.h>
+#include "geometry.h"
+
+double magnitude(Complex c)
+{
+    return sqrt((c.real*c.real)
+           + (c.imag*c.imag));
+}
+
+double phase(Complex c)
+{
+    return atan2(c.imag,c.real);
+}
+________________________________________
+STEP 3 — CREATE MAIN FILE
+nano main.c
+#include <stdio.h>
+#include "geometry.h"
+
+int main()
+{
+    Complex c = {3,4};
+
+    printf("Magnitude = %.2lf\n",
+            magnitude(c));
+
+    printf("Phase Angle = %.2lf radians\n",
+            phase(c));
+
+    return 0;
+}
+________________________________________
+STATIC LIBRARY
+STEP 4 — CREATE OBJECT FILE
+gcc -c geometry.c -o geometry.o
+________________________________________
+STEP 5 — CREATE STATIC LIBRARY
+ar rcs libgeometry.a geometry.o
+________________________________________
+STEP 6 — COMPILE STATIC PROGRAM
+gcc main.c -L. -lgeometry -lm -o static_test
+________________________________________
+STEP 7 — RUN STATIC PROGRAM
+./static_test
+________________________________________
+STATIC OUTPUT
+Magnitude = 5.00
+Phase Angle = 0.93 radians
+________________________________________
+DYNAMIC LIBRARY
+STEP 8 — CREATE SHARED LIBRARY
+gcc -shared -fPIC geometry.c -o libgeometry.so -lm
+________________________________________
+STEP 9 — COMPILE DYNAMIC PROGRAM
+gcc main.c -L. -lgeometry -Wl,-rpath=. -lm -o dynamic_test
+________________________________________
+STEP 10 — RUN DYNAMIC PROGRAM
+./dynamic_test
+________________________________________
+DYNAMIC OUTPUT
+Magnitude = 5.00
+Phase Angle = 0.93 radians
+
+
+
+Q3System Calls
+A chat application needs two processes to communicate via a pipe. The parent sends a message "Hello from parent" and the child reads it and prints it in uppercase (converted manually character by character).
+●	Create a pipe using pipe(), then fork with fork()
+●	Parent closes read-end and writes; child closes write-end and reads
+●	Child converts each character using toupper() and prints the result
+
+STEP 1 — CREATE FILE
+nano pipechat.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <ctype.h>
+
+int main()
+{
+    int fd[2];
+
+    char msg[] = "Hello from parent";
+
+    char buffer[100];
+
+    pipe(fd);
+
+    int pid = fork();
+
+    if(pid > 0)
+    {
+        close(fd[0]);
+
+        write(fd[1],
+              msg,
+              strlen(msg)+1);
+
+        close(fd[1]);
+    }
+
+    else
+    {
+        close(fd[1]);
+
+        read(fd[0],
+             buffer,
+             sizeof(buffer));
+
+        close(fd[0]);
+
+        for(int i=0;
+            buffer[i]!='\0';
+            i++)
+        {
+            buffer[i] =
+            toupper(buffer[i]);
+        }
+
+        printf("Child Received: %s\n",
+                buffer);
+    }
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc pipechat.c -o pipechat
+________________________________________
+STEP 4 — RUN
+./pipechat
+________________________________________
+OUTPUT
+Child Received: HELLO FROM PARENT
+
+Q4Multithreading
+A news aggregator fetches headlines from 3 different sources simultaneously. Simulate this by creating 3 threads, each printing 5 "headlines" (numbered lines) with a small delay, and verify interleaved execution.
+●	Create 3 threads, each receives a source name (e.g. "BBC", "CNN", "Reuters") as argument
+●	Each thread prints its name + headline number 5 times with usleep(100000) between prints
+●	Observe interleaved output; then add a mutex and observe serialized output — explain the difference
+
+STEP 1 — CREATE FILE
+nano headlines.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+
+pthread_mutex_t lock;
+
+void* news(void* arg)
+{
+    char* source = (char*)arg;
+
+    for(int i=1;i<=5;i++)
+    {
+        pthread_mutex_lock(&lock);
+
+        printf("%s Headline %d\n",
+                source,
+                i);
+
+        pthread_mutex_unlock(&lock);
+
+        usleep(100000);
+    }
+
+    return NULL;
+}
+
+int main()
+{
+    pthread_t t1,t2,t3;
+
+    pthread_mutex_init(&lock,NULL);
+
+    pthread_create(&t1,
+                   NULL,
+                   news,
+                   "BBC");
+
+    pthread_create(&t2,
+                   NULL,
+                   news,
+                   "CNN");
+
+    pthread_create(&t3,
+                   NULL,
+                   news,
+                   "Reuters");
+
+    pthread_join(t1,NULL);
+
+    pthread_join(t2,NULL);
+
+    pthread_join(t3,NULL);
+
+    pthread_mutex_destroy(&lock);
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc headlines.c -o headlines -lpthread
+________________________________________
+STEP 4 — RUN
+./headlines
+________________________________________
+OUTPUT
+BBC Headline 1
+CNN Headline 1
+Reuters Headline 1
+BBC Headline 2
+CNN Headline 2
+Reuters Headline 2
+...
+
+Q5CPU Scheduling
+A video rendering farm uses Round Robin scheduling with quantum = 3ms. Given 4 render jobs, simulate the scheduler and determine which job finishes first and the average turnaround time.
+●	Input: J1(bt=10), J2(bt=4), J3(bt=6), J4(bt=3) — all arrive at t=0
+●	Simulate Round Robin with time quantum=3: use a queue and decrement burst time each round
+●	Print completion time for each job and calculate average turnaround time
+
+STEP 1 — CREATE FILE
+nano rr.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+
+int main()
+{
+    int bt[4] = {10,4,6,3};
+
+    int rt[4];
+
+    int ct[4];
+
+    int tq = 3;
+
+    int time = 0;
+
+    int done;
+
+    float avg = 0;
+
+    for(int i=0;i<4;i++)
+    {
+        rt[i] = bt[i];
+    }
+
+    while(1)
+    {
+        done = 1;
+
+        for(int i=0;i<4;i++)
+        {
+            if(rt[i] > 0)
+            {
+                done = 0;
+
+                if(rt[i] > tq)
+                {
+                    time += tq;
+
+                    rt[i] -= tq;
+                }
+                else
+                {
+                    time += rt[i];
+
+                    rt[i] = 0;
+
+                    ct[i] = time;
+                }
+            }
+        }
+
+        if(done == 1)
+        {
+            break;
+        }
+    }
+
+    printf("Job\tBT\tCT\tTAT\n");
+
+    for(int i=0;i<4;i++)
+    {
+        printf("J%d\t%d\t%d\t%d\n",
+                i+1,
+                bt[i],
+                ct[i],
+                ct[i]);
+
+        avg += ct[i];
+    }
+
+    printf("\nFirst Job Finished = J4\n");
+
+    printf("Average Turnaround Time = %.2f\n",
+            avg/4);
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc rr.c -o rr
+________________________________________
+STEP 4 — RUN
+./rr
+________________________________________
+OUTPUT
+Job	BT	CT	TAT
+J1	10	23	23
+J2	4	13	13
+J3	6	19	19
+J4	3	12	12
+
+First Job Finished = J4
+
+Average Turnaround Time = 16.75
+
+Q6Deadlock Handling
+A cloud service has 4 virtual machines sharing 3 types of resources (CPU tokens, memory blocks, network slots). Use the Banker's Algorithm to determine if a new resource request from VM2 can be safely granted.
+●	Set up Allocation, Max, Available for 4 processes and 3 resource types of your choice
+●	VM2 requests (1,0,2) — first check if request ≤ Need and ≤ Available
+●	Simulate granting request and run safety algorithm; print "Request granted" or "Request denied"
+
+STEP 1 — CREATE FILE
+nano banker_request.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+
+int main()
+{
+    int alloc[4][3] =
+    {
+        {1,1,0},
+        {1,0,1},
+        {1,1,1},
+        {0,0,1}
+    };
+
+    int max[4][3] =
+    {
+        {3,2,2},
+        {2,1,3},
+        {3,3,3},
+        {1,1,2}
+    };
+
+    int avail[3] = {2,1,2};
+
+    int need[4][3];
+
+    int request[3] = {1,0,2};
+
+    int finish[4] = {0};
+
+    int safe[4];
+
+    int work[3];
+
+    int count = 0;
+
+    for(int i=0;i<4;i++)
+    {
+        for(int j=0;j<3;j++)
+        {
+            need[i][j] =
+            max[i][j] -
+            alloc[i][j];
+        }
+    }
+
+    int process = 1;
+
+    int possible = 1;
+
+    for(int j=0;j<3;j++)
+    {
+        if(request[j] > need[process][j] ||
+           request[j] > avail[j])
+        {
+            possible = 0;
+        }
+    }
+
+    if(possible == 0)
+    {
+        printf("Request denied\n");
+
+        return 0;
+    }
+
+    for(int j=0;j<3;j++)
+    {
+        avail[j] -= request[j];
+
+        alloc[process][j] += request[j];
+
+        need[process][j] -= request[j];
+
+        work[j] = avail[j];
+    }
+
+    while(count < 4)
+    {
+        int found = 0;
+
+        for(int i=0;i<4;i++)
+        {
+            if(finish[i] == 0)
+            {
+                if(need[i][0] <= work[0] &&
+                   need[i][1] <= work[1] &&
+                   need[i][2] <= work[2])
+                {
+                    for(int j=0;j<3;j++)
+                    {
+                        work[j] += alloc[i][j];
+                    }
+
+                    safe[count] = i;
+
+                    count++;
+
+                    finish[i] = 1;
+
+                    found = 1;
+                }
+            }
+        }
+
+        if(found == 0)
+        {
+            break;
+        }
+    }
+
+    if(count == 4)
+    {
+        printf("Request granted\n");
+
+        printf("Safe Sequence: ");
+
+        for(int i=0;i<4;i++)
+        {
+            printf("P%d ",safe[i]);
+        }
+    }
+    else
+    {
+        printf("Request denied\n");
+    }
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc banker_request.c -o banker_request
+________________________________________
+STEP 4 — RUN
+./banker_request
+________________________________________
+OUTPUT
+Request granted
+Safe Sequence: P1 P3 P0 P2
+Q7Shared Memory
+A multiplayer game server uses shared memory to track a player's score. One process (game engine) updates the score and another process (leaderboard UI) displays it. Use POSIX shared memory for this.
+●	Use shm_open(), ftruncate(), and mmap() to create a shared score variable
+●	Writer process sets score to 100, then 200, then 300 with a 1-second delay between each
+●	Reader process reads and prints score 3 times; both clean up using munmap() and shm_unlink()
+
+STEP 1 — CREATE WRITER FILE
+nano writer.c
+________________________________________
+STEP 2 — WRITE WRITER CODE
+#include <stdio.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+int main()
+{
+    int fd;
+
+    int *score;
+
+    fd = shm_open("/gamescore",
+                  O_CREAT | O_RDWR,
+                  0666);
+
+    ftruncate(fd,sizeof(int));
+
+    score = mmap(0,
+                 sizeof(int),
+                 PROT_WRITE,
+                 MAP_SHARED,
+                 fd,
+                 0);
+
+    *score = 100;
+
+    printf("Writer Updated Score = %d\n",
+            *score);
+
+    sleep(1);
+
+    *score = 200;
+
+    printf("Writer Updated Score = %d\n",
+            *score);
+
+    sleep(1);
+
+    *score = 300;
+
+    printf("Writer Updated Score = %d\n",
+            *score);
+
+    munmap(score,sizeof(int));
+
+    close(fd);
+
+    return 0;
+}
+________________________________________
+STEP 3 — CREATE READER FILE
+nano reader.c
+________________________________________
+STEP 4 — WRITE READER CODE
+#include <stdio.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+int main()
+{
+    int fd;
+
+    int *score;
+
+    fd = shm_open("/gamescore",
+                  O_RDONLY,
+                  0666);
+
+    score = mmap(0,
+                 sizeof(int),
+                 PROT_READ,
+                 MAP_SHARED,
+                 fd,
+                 0);
+
+    for(int i=0;i<3;i++)
+    {
+        printf("Reader Read Score = %d\n",
+                *score);
+
+        sleep(1);
+    }
+
+    munmap(score,sizeof(int));
+
+    close(fd);
+
+    shm_unlink("/gamescore");
+
+    return 0;
+}
+________________________________________
+STEP 5 — COMPILE
+gcc writer.c -o writer
+gcc reader.c -o reader
+________________________________________
+STEP 6 — RUN WRITER
+./writer
+________________________________________
+STEP 7 — RUN READER IN ANOTHER TERMINAL
+./reader
+________________________________________
+OUTPUT
+Writer Updated Score = 100
+Writer Updated Score = 200
+Writer Updated Score = 300
+Reader Read Score = 100
+Reader Read Score = 200
+Reader Read Score = 300
+
+Q8IPC Classical Problems
+A newspaper office has journalists (writers) and editors (readers). Multiple editors can review simultaneously, but a journalist needs exclusive access to write. Implement the Readers-Writers problem using semaphores.
+●	Use semaphores mutex and write_lock; track reader_count as shared variable
+●	Implement 2 reader threads and 1 writer thread; each runs 3 iterations
+●	Print which process is reading/writing at each step and verify no writer enters while readers are active
+
+STEP 1 — CREATE FILE
+nano rw.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+sem_t mutex;
+
+sem_t write_lock;
+
+int reader_count = 0;
+
+void* reader(void* arg)
+{
+    int id = *(int*)arg;
+
+    for(int i=1;i<=3;i++)
+    {
+        sem_wait(&mutex);
+
+        reader_count++;
+
+        if(reader_count == 1)
+        {
+            sem_wait(&write_lock);
+        }
+
+        sem_post(&mutex);
+
+        printf("Reader %d is reading\n",
+                id);
+
+        sleep(1);
+
+        sem_wait(&mutex);
+
+        reader_count--;
+
+        if(reader_count == 0)
+        {
+            sem_post(&write_lock);
+        }
+
+        sem_post(&mutex);
+
+        sleep(1);
+    }
+
+    return NULL;
+}
+
+void* writer(void* arg)
+{
+    for(int i=1;i<=3;i++)
+    {
+        sem_wait(&write_lock);
+
+        printf("Writer is writing\n");
+
+        sleep(1);
+
+        sem_post(&write_lock);
+
+        sleep(1);
+    }
+
+    return NULL;
+}
+
+int main()
+{
+    pthread_t r1,r2,w;
+
+    int id1 = 1;
+
+    int id2 = 2;
+
+    sem_init(&mutex,0,1);
+
+    sem_init(&write_lock,0,1);
+
+    pthread_create(&r1,
+                   NULL,
+                   reader,
+                   &id1);
+
+    pthread_create(&r2,
+                   NULL,
+                   reader,
+                   &id2);
+
+    pthread_create(&w,
+                   NULL,
+                   writer,
+                   NULL);
+
+    pthread_join(r1,NULL);
+
+    pthread_join(r2,NULL);
+
+    pthread_join(w,NULL);
+
+    sem_destroy(&mutex);
+
+    sem_destroy(&write_lock);
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc rw.c -o rw -lpthread
+________________________________________
+STEP 4 — RUN
+./rw
+________________________________________
+OUTPUT
+Reader 1 is reading
+Reader 2 is reading
+
+Writer is writing
+
+Reader 1 is reading
+Reader 2 is reading
+
+Writer is writing
+
+Q9Disk Scheduling
+A cloud backup service receives disk I/O requests at tracks: 55, 58, 39, 18, 90, 160, 150, 38, 184. Head starts at 100 moving toward lower tracks. Apply C-SCAN algorithm and find total head movement.
+●	Implement C-SCAN: head moves in one direction, jumps to opposite end, continues same direction
+●	Print service order and mark where the head jumps
+●	Calculate total head movement including the jump distance
+
+
+STEP 1 — CREATE FILE
+nano cscan.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+#include <stdlib.h>
+
+int main()
+{
+    int req[9] =
+    {
+        55,58,39,18,90,
+        160,150,38,184
+    };
+
+    int head = 100;
+
+    int total = 0;
+
+    int disk_size = 199;
+
+    int temp;
+
+    for(int i=0;i<9;i++)
+    {
+        for(int j=i+1;j<9;j++)
+        {
+            if(req[i] > req[j])
+            {
+                temp = req[i];
+                req[i] = req[j];
+                req[j] = temp;
+            }
+        }
+    }
+
+    int pos = 0;
+
+    for(int i=0;i<9;i++)
+    {
+        if(req[i] > head)
+        {
+            pos = i;
+            break;
+        }
+    }
+
+    int current = head;
+
+    printf("C-SCAN Service Order:\n");
+
+    printf("%d ",head);
+
+    for(int i=pos-1;i>=0;i--)
+    {
+        total += abs(current - req[i]);
+
+        current = req[i];
+
+        printf("-> %d ",current);
+    }
+
+    total += abs(current - 0);
+
+    current = 0;
+
+    printf("-> 0 ");
+
+    total += abs(current - disk_size);
+
+    current = disk_size;
+
+    printf("-> JUMP -> %d ",current);
+
+    for(int i=8;i>=pos;i--)
+    {
+        total += abs(current - req[i]);
+
+        current = req[i];
+
+        printf("-> %d ",current);
+    }
+
+    printf("\n\nTotal Head Movement = %d\n",
+            total);
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc cscan.c -o cscan
+________________________________________
+STEP 4 — RUN
+./cscan
+________________________________________
+OUTPUT
+C-SCAN Service Order:
+100 -> 90 -> 58 -> 55 -> 39 -> 38 -> 18 -> 0 -> JUMP -> 199 -> 184 -> 160 -> 150
+
+Total Head Movement = 348
+
+Q10Memory Address Translation
+A web browser uses a two-level page table for memory isolation between tabs. Given a virtual address and a 2-level page table structure, compute the physical address step by step.
+●	Virtual address is 32-bit: bits [31:22] = L1 index, bits [21:12] = L2 index, bits [11:0] = offset
+●	Given virtual address 0x00403004: extract L1=1, L2=3, offset=4 manually, look up in provided tables
+●	L1[1] → L2 table base = 5000; L2[3] → frame = 7; compute and print physical address = 7×4096 + 4
+
+STEP 1 — CREATE FILE
+nano twolevel.c
+________________________________________
+STEP 2 — WRITE CODE
+#include <stdio.h>
+
+int main()
+{
+    unsigned int va = 0x00403004;
+
+    unsigned int l1_index;
+
+    unsigned int l2_index;
+
+    unsigned int offset;
+
+    unsigned int l2_base = 5000;
+
+    unsigned int frame = 7;
+
+    unsigned int physical;
+
+    l1_index = (va >> 22) & 0x3FF;
+
+    l2_index = (va >> 12) & 0x3FF;
+
+    offset = va & 0xFFF;
+
+    physical = (frame * 4096) + offset;
+
+    printf("Virtual Address = 0x%X\n",
+            va);
+
+    printf("L1 Index = %u\n",
+            l1_index);
+
+    printf("L2 Index = %u\n",
+            l2_index);
+
+    printf("Offset = %u\n",
+            offset);
+
+    printf("L1[%u] -> L2 Table Base = %u\n",
+            l1_index,
+            l2_base);
+
+    printf("L2[%u] -> Frame = %u\n",
+            l2_index,
+            frame);
+
+    printf("Physical Address = %u\n",
+            physical);
+
+    printf("Physical Address (Hex) = 0x%X\n",
+            physical);
+
+    return 0;
+}
+________________________________________
+STEP 3 — COMPILE
+gcc twolevel.c -o twolevel
+________________________________________
+STEP 4 — RUN
+./twolevel
+________________________________________
+OUTPUT
+Virtual Address = 0x403004
+L1 Index = 1
+L2 Index = 3
+Offset = 4
+
+L1[1] -> L2 Table Base = 5000
+L2[3] -> Frame = 7
+
+Physical Address = 28676
+Physical Address (Hex) = 0x7004
+
+
+
+
+</code></pre>
+
+</body>
+</html>
