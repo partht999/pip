@@ -9,43 +9,43 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define V 20
+#define V 20   // at least 20 vertices
 
 int g[V][V];
 
-int main() {
-
-    srand(time(0));
-
-    // Step 1: Generate random undirected graph
-    for (int i = 0; i < V; i++)
-        for (int j = i + 1; j < V; j++)
-            g[i][j] = g[j][i] = rand() % 2;
-
-    printf("Graph adjacency matrix:\n");
+// Function to generate random undirected graph
+void generateGraph(double density) {
     for (int i = 0; i < V; i++) {
-        for (int j = 0; j < V; j++)
-            printf("%d ", g[i][j]);
-        printf("\n");
+        for (int j = 0; j < V; j++) {
+            g[i][j] = 0;
+        }
     }
 
-    int cover[V] = {0};   // 1 if vertex is in vertex cover
-
-    clock_t start = clock();
-
-    // Step 2: Vertex Cover Approximation
     for (int i = 0; i < V; i++) {
         for (int j = i + 1; j < V; j++) {
+            double r = (double)rand() / RAND_MAX;
 
-            // if edge exists and both endpoints not yet removed
+            if (r < density) {
+                g[i][j] = g[j][i] = 1;
+            }
+        }
+    }
+}
+
+// 2-Approximation Vertex Cover
+void vertexCoverApprox(int cover[]) {
+    int i, j, k;
+
+    for (i = 0; i < V; i++) {
+        for (j = i + 1; j < V; j++) {
+
             if (g[i][j] == 1) {
 
-                // add both endpoints to vertex cover
                 cover[i] = 1;
                 cover[j] = 1;
 
-                // Step 3: REMOVE all edges incident on i and j
-                for (int k = 0; k < V; k++) {
+                // remove all edges incident on i and j
+                for (k = 0; k < V; k++) {
                     g[i][k] = 0;
                     g[k][i] = 0;
 
@@ -55,18 +55,36 @@ int main() {
             }
         }
     }
+}
 
-    clock_t end = clock();
-
-    // Step 4: Print Vertex Cover
-    printf("\nVertex Cover Set:\n");
+void printCover(int cover[]) {
+    printf("Vertex Cover Set: ");
     for (int i = 0; i < V; i++) {
         if (cover[i])
             printf("%d ", i);
     }
+    printf("\n");
+}
 
-    printf("\nTime taken: %f seconds\n",
-           (double)(end - start) / CLOCKS_PER_SEC);
+int main() {
+    srand(time(NULL));
+
+    int cover[V] = {0};
+
+    // generate random graph
+    generateGraph(0.3); // 30% edge probability
+
+    clock_t start = clock();
+
+    vertexCoverApprox(cover);
+
+    clock_t end = clock();
+
+    printCover(cover);
+
+    double time_taken = (double)(end - start) / CLOCKS_PER_SEC;
+
+    printf("Execution Time: %f seconds\n", time_taken);
 
     return 0;
 }
