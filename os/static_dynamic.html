@@ -1,0 +1,79 @@
+<html>
+<head>
+    <title>Python Code Display</title>
+</head>
+<body>
+
+<pre><code>
+📁 1. Source Code Files
+
+🔹 add.c
+int add(int a, int b) {
+    return a + b;
+}
+
+
+🔹 add.h
+#ifndef ADD_H
+#define ADD_H
+
+int add(int a, int b);
+
+#endif
+
+
+🔹 main.c
+#include <stdio.h>
+#include "add.h"
+
+int main() {
+    int x, y;
+
+    printf("Enter two numbers: ");
+    scanf("%d %d", &x, &y);
+
+    printf("Sum = %d\n", add(x, y));
+
+    return 0;
+}
+
+
+
+🟦 STATIC LINKING (FULL)
+
+✅ Commands
+gcc -c add.c -o add.o
+ar rcs libadd.a add.o
+gcc main.c -L. -ladd -o static_program
+./static_program
+
+
+
+
+📌 What happens:
+add.o → object file
+libadd.a → static library created
+final executable contains add function inside it
+
+🟩 DYNAMIC LINKING (FULL)
+✅ Commands
+
+
+gcc -fPIC -c add.c -o add.o
+gcc -shared -o libadd.so add.o
+export LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH
+gcc main.c -L. -ladd -o dynamic_program
+./dynamic_program
+
+
+</code></pre>
+
+</body>
+</html>
+
+
+
+
+gcc -c add.c -o add.o
+ar rcs libadd.a add.o
+gcc main.c -L. -ladd -o driver_static
