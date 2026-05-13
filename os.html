@@ -305,6 +305,12 @@ Total Sum = 5050
 
 
 
+
+
+
+
+
+
 Q5CPU Scheduling
 A hospital's triage system assigns CPU time based on arrival and priority. Given 5 patients (processes) with known arrival times and burst times, simulate FCFS scheduling and calculate average waiting time.
 ●	Input: P1(0,6), P2(1,4), P3(2,2), P4(3,3), P5(4,1) — (arrival, burst)
@@ -656,6 +662,18 @@ Read Temperature = 33
 Read Temperature = 34
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 Q8IPC Classical Problems
 A bakery has 1 baker (producer) and 3 customers (consumers). The shelf holds at most 5 items. Solve this Producer-Consumer problem using semaphores to prevent race conditions.
 ●	Use sem_init() to create empty, full, and mutex semaphores
@@ -775,6 +793,20 @@ Produced 3
 Consumed 3 by Consumer ...
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Q9Disk Scheduling
 A hospital records system has disk requests at tracks: 98, 183, 37, 122, 14, 124, 65, 67. The disk head starts at track 53. Find total head movement using SSTF scheduling.
 ●	Implement SSTF in C: at each step, service the closest unvisited request
@@ -854,6 +886,23 @@ Order of Service:
 
 Total Head Movement = 236
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Q10Memory Address Translation
 A virtual memory system uses paging with page size 4KB. Given a virtual address, compute the physical address using a simple page table.
 ●	Define a page table array mapping virtual page numbers to frame numbers (e.g., page 0→frame 3, page 1→frame 1, page 2→frame 4)
@@ -930,6 +979,18 @@ Virtual Address = 0x2B10
 Page Number = 2
 Offset = 2832
 Physical Address = 0x4B10
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1018,6 +1079,18 @@ OUTPUT
 Absolute Value = 5.00
 Power = -7 + 24i
 
+
+
+
+
+
+
+
+
+
+
+
+
 Q3System Calls
 A student attendance app needs to log entries. Write a C program that creates a new process using fork(). The parent process writes "Parent attended" to a file; the child writes "Child attended" to the same file.
 ●	Use fork() to create child, use getpid() and getppid() to print PIDs
@@ -1097,6 +1170,26 @@ ________________________________________
 OUTPUT
 Child attended
 Parent attended
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 Q4Multithreading
@@ -1196,6 +1289,22 @@ OUTPUT
 Counter Without Mutex = 9823
 
 Counter With Mutex = 10000
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 Q5CPU Scheduling
@@ -1301,6 +1410,22 @@ Average Waiting Time = 5.60
 Average Turnaround Time = 8.60
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Q6Deadlock Handling
 A university computer lab has shared resources (projectors and USB hubs). 3 student groups hold some resources and request more. Determine if deadlock exists using the resource allocation graph approach.
 ●	Represent 3 processes and 2 resource types; define Allocation and Request matrices
@@ -1401,6 +1526,20 @@ STEP 4 — RUN
 ________________________________________
 OUTPUT
 No deadlock detected
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 Q7Shared Memory
@@ -1531,6 +1670,17 @@ Reader Read Counter = 1
 Reader Read Counter = 2
 ...
 Reader Read Counter = 10
+
+
+
+
+
+
+
+
+
+
+
 
 Q8IPC Classical Problems
 A college library has 3 reading chairs (resource). 5 students want to read. Implement the Dining Philosophers problem with 3 philosophers and 3 forks to simulate resource contention and safe resource acquisition.
@@ -1666,6 +1816,17 @@ Philosopher 2 is eating
 
 Philosopher 2 finished eating
 
+
+
+
+
+
+
+
+
+
+
+
 Q9Disk Scheduling
 An online video server stores video chunks at disk tracks: 176, 79, 34, 60, 92, 11, 41, 114. Head starts at 50, moving toward higher tracks. Find total movement using SCAN (elevator) algorithm.
 ●	Implement SCAN: move head in one direction servicing requests, then reverse
@@ -1781,6 +1942,18 @@ SCAN Service Order:
 Total SCAN Head Movement = 291
 Total FCFS Head Movement = 510
 
+
+
+
+
+
+
+
+
+
+
+
+
 Q10Memory Address Translation
 A game running in a virtual machine uses segmentation. Each segment has a base and limit. Translate virtual addresses to physical addresses and detect any out-of-bounds access.
 ●	Define 3 segments: Code (base=1000, limit=400), Data (base=2000, limit=500), Stack (base=3000, limit=300)
@@ -1871,6 +2044,15 @@ Reason: Offset exceeds segment limit
 Request 3:
 Segment = 2 Offset = 150
 Physical Address = 3150
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1967,6 +2149,9 @@ Phase Angle = 0.93 radians
 
 
 
+
+
+
 Q3System Calls
 A chat application needs two processes to communicate via a pipe. The parent sends a message "Hello from parent" and the child reads it and prints it in uppercase (converted manually character by character).
 ●	Create a pipe using pipe(), then fork with fork()
@@ -2038,6 +2223,13 @@ STEP 4 — RUN
 ________________________________________
 OUTPUT
 Child Received: HELLO FROM PARENT
+
+
+
+
+
+
+
 
 Q4Multithreading
 A news aggregator fetches headlines from 3 different sources simultaneously. Simulate this by creating 3 threads, each printing 5 "headlines" (numbered lines) with a small delay, and verify interleaved execution.
@@ -2121,6 +2313,20 @@ BBC Headline 2
 CNN Headline 2
 Reuters Headline 2
 ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Q5CPU Scheduling
 A video rendering farm uses Round Robin scheduling with quantum = 3ms. Given 4 render jobs, simulate the scheduler and determine which job finishes first and the average turnaround time.
@@ -2225,6 +2431,17 @@ J4	3	12	12
 First Job Finished = J4
 
 Average Turnaround Time = 16.75
+
+
+
+
+
+
+
+
+
+
+
 
 Q6Deadlock Handling
 A cloud service has 4 virtual machines sharing 3 types of resources (CPU tokens, memory blocks, network slots). Use the Banker's Algorithm to determine if a new resource request from VM2 can be safely granted.
@@ -2373,6 +2590,18 @@ ________________________________________
 OUTPUT
 Request granted
 Safe Sequence: P1 P3 P0 P2
+
+
+
+
+
+
+
+
+
+
+
+
 Q7Shared Memory
 A multiplayer game server uses shared memory to track a player's score. One process (game engine) updates the score and another process (leaderboard UI) displays it. Use POSIX shared memory for this.
 ●	Use shm_open(), ftruncate(), and mmap() to create a shared score variable
@@ -2495,6 +2724,18 @@ Writer Updated Score = 300
 Reader Read Score = 100
 Reader Read Score = 200
 Reader Read Score = 300
+
+
+
+
+
+
+
+
+
+
+
+
 
 Q8IPC Classical Problems
 A newspaper office has journalists (writers) and editors (readers). Multiple editors can review simultaneously, but a journalist needs exclusive access to write. Implement the Readers-Writers problem using semaphores.
@@ -2631,6 +2872,15 @@ Reader 2 is reading
 
 Writer is writing
 
+
+
+
+
+
+
+
+
+
 Q9Disk Scheduling
 A cloud backup service receives disk I/O requests at tracks: 55, 58, 39, 18, 90, 160, 150, 38, 184. Head starts at 100 moving toward lower tracks. Apply C-SCAN algorithm and find total head movement.
 ●	Implement C-SCAN: head moves in one direction, jumps to opposite end, continues same direction
@@ -2738,6 +2988,17 @@ C-SCAN Service Order:
 100 -> 90 -> 58 -> 55 -> 39 -> 38 -> 18 -> 0 -> JUMP -> 199 -> 184 -> 160 -> 150
 
 Total Head Movement = 348
+
+
+
+
+
+
+
+
+
+
+
 
 Q10Memory Address Translation
 A web browser uses a two-level page table for memory isolation between tabs. Given a virtual address and a 2-level page table structure, compute the physical address step by step.
